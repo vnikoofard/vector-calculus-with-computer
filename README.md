@@ -1,0 +1,1 @@
+I'm preparing my notes for my classes on vector calculus given at Rio de Janeiro State University (UERJ). From 2018-2019 I used Mathematica as a companion to the course. In 2020 I decided to move to an opensource CAS and I chosed Sympy library of Python. 
