@@ -238,3 +238,36 @@ def vector3d(x_0, y_0, z_0, x_1, y_1, z_1, ratio1 = 0.1, ratio2 = 1/3, fig=False
         fig.update_layout(showlegend = False)
         fig.update_xaxes(showgrid=False, zeroline=False)
         fig.update_yaxes(showgrid=False, zeroline=False)
+        
+def plot3d(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title='3D Surface Plot', points = 50):
+    
+    if inter1 ==None:
+        print("Please input the interval for the first variable in the format (variable, begin, end)")
+    if inter2 ==None:
+        print("Please input the interval for the second variable in the format (variable, begin, end)")
+    
+    import sympy as sp
+    if not isinstance(func, tuple(sp.core.all_classes)):
+        func = sp.sympify(str(func))
+    assert func.free_symbols ==set([inter1[0],inter2[0]]), "The variables of the function aren't the same as the declared in the intervals"
+    
+    func_np = sp.lambdify([inter1[0],inter2[0]], func)
+    
+    points = eval(str(points) + 'j')
+    xx, yy = np.mgrid[inter1[1]:inter1[2]:points, inter2[1]:inter2[2]:points]
+    zz = func_np(xx,yy)
+    
+    
+       
+    if fig == False:
+        fig = go.Figure()
+        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
+        fig.update_layout(title=title, xaxis_title=xtitle,
+                          yaxis_title= ytitle, scene_aspectmode='cube')
+        fig.show()
+    
+    else:
+        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
+        fig.update_layout(title=title, xaxis_title=xtitle,
+                          yaxis_title= ytitle, scene_aspectmode='cube')
+    
