@@ -184,10 +184,7 @@ def vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', sh
     l = np.sqrt((x_1 - x_0)**2 + (y_1 - y_0)**2)
     length1 = rt1 *l
     length2 = rt2 * length1
-    #A = (l - length1)**2
-    #numerator = -2*a*x_0-2*b*y_0 + np.sqrt((2*a*x_0+2*b*y_0)**2-4*l*(-A+x_0**2+y_0**2))
-    #denominator = 2*l
-    #t = numerator/denominator
+
     t = (1-rt1)
     x_bar , y_bar = a * t + x_0, b * t + y_0
     
@@ -270,4 +267,55 @@ def plot3d(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle
         fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title= ytitle, scene_aspectmode='cube')
+
+
     
+# Parametric plot 3D
+
+def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title='3D Surface Plot', points = 50):
+
+    '''
+    func: must be a either a tuple with three components or a parametric equation in the class sympy.vector
+    inter1: (parameter, start, end)
+    inter2: (parameter, start, end)
+    '''
+    
+    if inter1 ==None:
+        print("Please input the interval for the first parameter in the format (parameter, begin, end)")
+    if inter2 ==None:
+        print("Please input the interval for the second parameter in the format (parameter, begin, end)")
+    
+    import sympy as sp
+    if isinstance(func, tuple(sp.core.all_classes)):
+        if func.is_Vector:
+            func = tuple(func.components.values())
+
+    #check if the parametric equation has three components.        
+    assert len(func) ==3, 'The parametric equation of a 3D surface must has 3 components.'
+
+    #check if the parameters of the equation are the same as parameters declared in the intervals.
+    params = [func[i].free_symbols for i in range(len(func))]
+    params_unique = set([item for sublist in params for item in sublist])
+    assert params_unique == set([inter1[0],inter2[0]]), "The parameters of the function aren't the same as the ones declared in the intervals"
+    
+    
+    xx_np = sp.lambdify([inter1[0],inter2[0]], func[0])
+    yy_np = sp.lambdify([inter1[0],inter2[0]], func[1])
+    zz_np = sp.lambdify([inter1[0],inter2[0]], func[2])
+    
+    var1,var2 = np.linspace(inter1[1],inter1[2],points), np.linspace(inter2[1],inter2[2],points)
+    uGrid, vGrid = np.meshgrid(var1, var2)
+    xx, yy, zz = xx_np(uGrid,vGrid), yy_np(uGrid,vGrid), zz_np(uGrid,vGrid)
+    
+          
+    if fig == False:
+        fig = go.Figure()
+        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
+        fig.update_layout(title=title, xaxis_title=xtitle,
+                          yaxis_title= ytitle, scene_aspectmode='cube')
+        fig.show()
+    
+    else:
+        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
+        fig.update_layout(title=title, xaxis_title=xtitle,
+                          yaxis_title= ytitle, scene_aspectmode='cube')
