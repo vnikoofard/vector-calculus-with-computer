@@ -1,3 +1,5 @@
+#! /home/vahid/miniconda3/bin/python
+
 import plotly.graph_objects as go
 
 import numpy as np
@@ -20,7 +22,7 @@ def curve(x , y , fig = False,xtitle = 'X', ytitle= 'Y', title='2D Plot', lw =5)
 
 # 3D curve plot
 
-def curve3d(x , y , z, fig = False,xtitle = 'X', ytitle= 'Y', title='3D Plot', lw =5):
+def curve3d(x , y , z, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Plot', lw =5):
     
     if fig == False:
         fig = go.Figure()
@@ -50,7 +52,61 @@ def curve3d(x , y , z, fig = False,xtitle = 'X', ytitle= 'Y', title='3D Plot', l
            )) 
         
 
+# Plot a parametric curve in 3D
+def plot3d_parametric_curve(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title='3D Surface Plot', points = 50):
 
+    '''
+    - func: must be a either a tuple with three components (e.g. Sympy objects) or a parametric equation in the class sympy.vector
+    - inter1: (parameter, start, end)
+    '''
+    
+    if inter1 ==None:
+        print("Please input the interval for the first parameter in the format (parameter, begin, end)")
+
+    
+    import sympy as sp
+    if isinstance(func, tuple(sp.core.all_classes)):
+        if func.is_Vector:
+            func = tuple(func.components.values())
+
+    #check if the parametric equation has three components.        
+    assert len(func) ==3, 'The parametric equation of a 3D surface must has 3 components.'
+
+    #check if the parameters of the equation are the same as parameters declared in the intervals.
+    params = [func[i].free_symbols for i in range(len(func)) if isinstance(func[i], tuple(sp.core.all_classes)) ]
+    params_unique = set([item for sublist in params for item in sublist])
+    assert params_unique == set([inter1[0]]), "The parameters of the function aren't the same as the ones declared in the intervals"
+    
+    
+    xx_np = sp.lambdify(inter1[0], func[0])
+    yy_np = sp.lambdify(inter1[0], func[1])
+    zz_np = sp.lambdify(inter1[0], func[2])
+    
+    
+    
+    var1 = np.linspace(inter1[1],inter1[2],points)
+    xx, yy, zz = xx_np(var1), yy_np(var1), zz_np(var1)
+    
+    
+    l = [xx,yy,zz]
+    for item in range(len(l)):
+        if type(item)!= np.ndarray:
+            l[item] *= np.ones(var1.shape)
+            
+    xx, yy, zz = l[0], l[1], l[2]
+          
+    if fig == False:
+        
+        curve3d(x = xx , y = yy, z = zz)
+        
+    
+    else:
+        curve3d(x = xx , y = yy, z = zz, fig = fig)
+        
+
+
+        
+        
 # Position vector originating from origin!
 
 def position_vector(x_0,y_0, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgrid = True, zeroline=True, lw=2):
@@ -236,7 +292,7 @@ def vector3d(x_0, y_0, z_0, x_1, y_1, z_1, ratio1 = 0.1, ratio2 = 1/3, fig=False
         fig.update_xaxes(showgrid=False, zeroline=False)
         fig.update_yaxes(showgrid=False, zeroline=False)
         
-def plot3d(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title='3D Surface Plot', points = 50):
+def plot3d(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title='3D Surface Plot', points = 50, opacity = 1):
     
     if inter1 ==None:
         print("Please input the interval for the first variable in the format (variable, begin, end)")
@@ -260,13 +316,15 @@ def plot3d(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle
         fig = go.Figure()
         fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
         fig.update_layout(title=title, xaxis_title=xtitle,
-                          yaxis_title= ytitle, scene_aspectmode='cube')
+                          yaxis_title= ytitle, scene_aspectmode='cube',
+                         opacity = opacity)
         fig.show()
     
     else:
         fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
         fig.update_layout(title=title, xaxis_title=xtitle,
-                          yaxis_title= ytitle, scene_aspectmode='cube')
+                          yaxis_title= ytitle, scene_aspectmode='cube',
+                         opacity = opacity)
 
 
     
@@ -319,3 +377,27 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
         fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title= ytitle, scene_aspectmode='cube')
+        
+# construct plane given three points using normal vector 
+def plane_1(a,b,c): 
+    '''
+    a,b,c : tuples with three element (x,y,z)
+    '''
+    x, y , z = sp.symbols("x y z")
+    plane_temp = sp.Plane(sp.Point3D(*a),sp.Point3D(*b),sp.Point3D(*c))
+    vn = plane_temp.normal_vector;
+    
+    return -(vn[0]*(x-a[0])+vn[1]*(y-a[1]))/vn[2] + a[2]
+
+# construct plane given three points using determinent 
+
+def plane_2(a,b,c): 
+    '''
+    a,b,c : tuples with three element (x,y,z)
+    '''
+    x, y , z = sp.symbols("x y z")
+      
+    matrix = [[x ,y, z,1],[a[0],a[1],a[2],1],
+                      [b[0],b[1],b[2],1],[c[0],c[1],c[2],1]]
+    matrix = sp.Matrix(matrix)
+    return sp.solve(matrix.det(),z)[0]
