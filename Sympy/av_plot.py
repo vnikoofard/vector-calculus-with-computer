@@ -294,6 +294,12 @@ def vector3d(x_0, y_0, z_0, x_1, y_1, z_1, ratio1 = 0.1, ratio2 = 1/3, fig=False
         
 def plot3d(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title='3D Surface Plot', points = 50, opacity = 1):
     
+    '''
+    func: must be function with two variables
+    inter1: (variable1, start, end)
+    inter2: (variable2, start, end)
+    '''
+    
     if inter1 ==None:
         print("Please input the interval for the first variable in the format (variable, begin, end)")
     if inter2 ==None:
@@ -377,6 +383,113 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
         fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title= ytitle, scene_aspectmode='cube')
+
+# Density function (or Scalar field) plot
+        
+def plot_density_function(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title='2D Density Function', points = 50):
+    
+    '''
+    func: must be function with two variables
+    inter1: (variable1, start, end)
+    inter2: (variable2, start, end)
+    '''
+    
+    if inter1 ==None:
+        print("Please input the interval for the first variable in the format (variable, begin, end)")
+    if inter2 ==None:
+        print("Please input the interval for the second variable in the format (variable, begin, end)")
+    
+    import sympy as sp
+    if not isinstance(func, tuple(sp.core.all_classes)):
+        func = sp.sympify(str(func))
+    assert func.free_symbols ==set([inter1[0],inter2[0]]), "The variables of the function aren't the same as the declared in the intervals"
+    
+    func_np = sp.lambdify([inter1[0],inter2[0]], func)
+    
+    points1 = eval(str(points) + 'j')
+    
+    xx, yy = np.mgrid[inter1[1]:inter1[2]:points1, inter2[1]:inter2[2]:points1]
+    zz = func_np(xx,yy)
+    
+    x ,y = np.linspace(inter1[1],inter2[2],points), np.linspace(inter1[1],inter2[2],points)   
+    
+    if fig == False:
+        fig = go.Figure()
+        fig.add_heatmap(x = x , y = y, z = zz, connectgaps=True, zsmooth='best')
+        fig.update_layout(title=title, xaxis_title=xtitle,
+                          yaxis_title= ytitle,
+                          yaxis=dict(scaleanchor="x", scaleratio=1), 
+                          width = (inter1[2]-inter1[1])*50, height = (inter2[2]-inter2[1])*50)
+        
+        fig.show()
+    
+    else:
+        fig.add_heatmap(x = x , y = y, z = zz, connectgaps=True, zsmooth='best')
+        fig.update_layout(title=title, xaxis_title=xtitle,
+                          yaxis_title= ytitle,
+                          yaxis=dict(scaleanchor="x", scaleratio=1),
+                         width = (inter1[2]-inter1[1])*50, height = (inter2[2]-inter2[1])*50)
+        
+#3D Density Function (or Scalar Field) plot
+        
+def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None, 
+                          fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", 
+                          title='2D Density Function', points = 50, isomin=0, isomax=20, opacity=0.4,surface_count=5):
+    
+    '''
+    func: must be function with three variables
+    inter1: (variable1, start, end)
+    inter2: (variable2, start, end)
+    '''
+    
+    if inter1 ==None:
+        print("Please input the interval for the first variable in the format (variable, begin, end)")
+    if inter2 ==None:
+        print("Please input the interval for the second variable in the format (variable, begin, end)")
+    if inter3 ==None:
+        print("Please input the interval for the third variable in the format (variable, begin, end)")
+    
+    
+    import sympy as sp
+    if not isinstance(func, tuple(sp.core.all_classes)):
+        func = sp.sympify(str(func))
+    assert func.free_symbols ==set([inter1[0],inter2[0],inter3[0]]), "The variables of the function aren't the same as the declared in the intervals"
+    
+    func_np = sp.lambdify([inter1[0],inter2[0],inter3[0]], func)
+    
+    points1 = eval(str(points) + 'j')
+    
+    xx, yy, zz = np.mgrid[inter1[1]:inter1[2]:points1, inter2[1]:inter2[2]:points1, inter3[1]:inter3[2]:points1]
+    values = func_np(xx, yy, zz)
+    
+    #x ,y = np.linspace(inter1[1],inter2[2],points), np.linspace(inter1[1],inter2[2],points)   
+    
+    if fig == False:
+        fig = go.Figure()
+        fig.add_isosurface(x = xx.flatten(), y = yy.flatten(), z = zz.flatten(),value=values.flatten(),
+        isomin=isomin,
+        isomax=isomax,
+        caps=dict(x_show=False, y_show=False),
+                          opacity=opacity,
+                          surface_count=surface_count, # number of isosurfaces, 2 by default: only min and max
+                          colorbar_nticks=8 # colorbar ticks correspond to isosurface values
+                          )
+        fig.update_layout(title=title, xaxis_title=xtitle, yaxis_title= ytitle)
+        
+        fig.show()
+    
+    else:
+        fig.add_isosurface(x = xx.flatten(), y = yy.flatten(), z = zz.flatten(),value=values.flatten(),
+        isomin=isomin,
+        isomax=isomax,
+        caps=dict(x_show=False, y_show=False),
+                          opacity=opacity,
+                          surface_count=surface_count, # number of isosurfaces, 2 by default: only min and max
+                          colorbar_nticks=8 # colorbar ticks correspond to isosurface values
+                          )
+        fig.update_layout(title=title, xaxis_title=xtitle, yaxis_title= ytitle)
+
+        
         
 # construct plane given three points using normal vector 
 def plane_1(a,b,c): 
