@@ -198,7 +198,12 @@ def position_vector3d(x_0, y_0, z_0, ratio1 = 0.1, ratio2 = 1/3, fig=False, colo
         
 def vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgrid = True, zeroline=True, lw=3):
     
-    '''The ideia of the below function is as follow. First, we write the parametric equation for the segment of 
+    '''
+    (x_0,y_0): initial point of the vector
+    (x_1,y_1): final point of the vetor
+    
+    
+    The ideia of the below function is as follow. First, we write the parametric equation for the segment of 
     the line that pass through $(0,0)$ and $(x_0, y_0)$. It is 
     $$
     \vec r(t) = \begin{cases}
