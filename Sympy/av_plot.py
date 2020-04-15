@@ -1,11 +1,12 @@
 #! /home/vahid/miniconda3/bin/python
 
 import plotly.graph_objects as go
+import sympy as sp
 
 import numpy as np
 
 # 2D curve plot
-def curve(x , y , fig = False,xtitle = 'X', ytitle= 'Y', title='2D Plot', lw =5):
+def plot_curve(x , y , fig = False,xtitle = 'X', ytitle= 'Y', title='2D Plot', lw =5):
     
     if fig == False:
         fig = go.Figure()
@@ -22,7 +23,7 @@ def curve(x , y , fig = False,xtitle = 'X', ytitle= 'Y', title='2D Plot', lw =5)
 
 # 3D curve plot
 
-def curve3d(x , y , z, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Plot', lw =5):
+def plot_curve3d(x , y , z, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Plot', aspectmode='data', lw =5):
     
     if fig == False:
         fig = go.Figure()
@@ -32,7 +33,7 @@ def curve3d(x , y , z, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Plot', 
             xaxis=dict(),
            yaxis=dict(),
            zaxis=dict(),
-           aspectmode='data', #this string can be 'data', 'cube', 'auto', 'manual'
+           aspectmode=aspectmode, #this string can be 'data', 'cube', 'auto', 'manual'
            #a custom aspectratio is defined as follows:
            aspectratio=dict(x=1, y=1, z=0.95)
            ))
@@ -46,21 +47,21 @@ def curve3d(x , y , z, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Plot', 
             xaxis=dict(),
            yaxis=dict(),
            zaxis=dict(),
-           aspectmode='data', #this string can be 'data', 'cube', 'auto', 'manual'
+           aspectmode= aspectmode, #this string can be 'data', 'cube', 'auto', 'manual'
            #a custom aspectratio is defined as follows:
            aspectratio=dict(x=1, y=1, z=0.95)
            )) 
         
 
 # Plot a parametric curve in 3D
-def plot3d_parametric_curve(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title='3D Surface Plot', points = 50):
+def plot3d_parametric_curve(func, inter1 = None, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Surface Plot', points = 50,aspectmode = 'data'):
 
     '''
     - func: must be a either a tuple with three components (e.g. Sympy objects) or a parametric equation in the class sympy.vector
     - inter1: (parameter, start, end)
     '''
     
-    if inter1 ==None:
+    if inter1 == None:
         print("Please input the interval for the first parameter in the format (parameter, begin, end)")
 
     
@@ -97,11 +98,12 @@ def plot3d_parametric_curve(func, inter1 = None, inter2 = None, fig = False, xti
           
     if fig == False:
         
-        curve3d(x = xx , y = yy, z = zz)
+        
+        plot_curve3d(x = xx , y = yy, z = zz, xtitle = xtitle, ytitle= ytitle, title=title,aspectmode = aspectmode)
         
     
     else:
-        curve3d(x = xx , y = yy, z = zz, fig = fig)
+        plot_curve3d(x = xx , y = yy, z = zz, fig = fig, xtitle = xtitle, ytitle= ytitle, title=title, aspectmode=aspectmode)
         
 
 
@@ -519,3 +521,54 @@ def plane_2(a,b,c):
                       [b[0],b[1],b[2],1],[c[0],c[1],c[2],1]]
     matrix = sp.Matrix(matrix)
     return sp.solve(matrix.det(),z)[0]
+
+# Norm of a vector
+def Norm(v):
+    return sp.simplify(sp.sqrt(v.dot(v)))
+
+#Unit vector
+def Unit_Vector(curve):
+    return curve/Norm(curve)
+
+#Arc Length
+def Arc_Length(curve, a): 
+    #a: Um Tuple (variavel, inicio, fim)
+    return sp.integrate(Norm(curve.diff()),a)
+
+# Tangent Unitary vector
+def UT(curve): return curve.diff()/Norm(curve.diff())
+
+# Normal Unitary Vector
+def UN(curve): return UT(curve).diff()/Norm(UT(curve).diff())
+
+# Binormal Unitary Vector
+def UB(curve): return (UT(curve)^UN(curve)).simplify()
+
+# Curvature of a curve
+def curvature(curve): return Norm(UT(curve).diff())/Norm(curve.diff())
+
+# Torsion of a curve
+def torsion(curve): return (curve.diff().cross(curve.diff(t,2))).dot(curve.diff(t,3))/Norm(curve.diff().cross(curve.diff(t,2)))
+
+#Line Integral for a scalar field
+def line_integral_scalar(field,curve,a):
+    '''
+    field: Scalar field F(x,y,z). NOTE: the function must be inserted without its arguments.
+    curve: parametrized curve r(t) = x(t)i + y(t)j + z(t)k
+    a:(Tuple) (parameter of the curve, initial point, final point)
+    Note: if the field is tridimensional, the curve also must have the same dimension. 
+    
+    '''
+    
+    c = tuple(curve.components.values())
+    
+    # parametrizing the field using the curve parametric equation
+    parametrized_field = field(*c)
+    module = Norm(curve.diff())
+        
+  
+    integrand = parametrized_field*module
+        
+    return sp.integrate(integrand,a).simplify()
+
+
