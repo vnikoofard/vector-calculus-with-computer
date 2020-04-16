@@ -447,6 +447,7 @@ def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None,
     func: must be function with three variables
     inter1: (variable1, start, end)
     inter2: (variable2, start, end)
+    inter3: (variable2, start, end)
     '''
     
     if inter1 ==None:
@@ -496,6 +497,81 @@ def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None,
                           )
         fig.update_layout(title=title, xaxis_title=xtitle, yaxis_title= ytitle)
 
+        
+        
+        
+# plotting a 3D vector field
+def plot3d_vector_field(func, inter1 = None, inter2 = None, inter3 = None, fig = False, points=15, sizemode="scaled", sizeref=1):
+    
+    
+    '''
+    func: must be vector field with three variables, with Sympy symbols in the format of a vector or tuple
+    inter1: (variable1, start, end)
+    inter2: (variable2, start, end)
+    inter3: (variable2, start, end)
+    '''
+    
+    var1 = inter1[0]
+    var2 = inter2[0]
+    var3 = inter3[0]
+    
+    
+    
+    if inter1 ==None:
+        print("Please input the interval for the first variable in the format (variable, begin, end)")
+    if inter2 ==None:
+        print("Please input the interval for the second variable in the format (variable, begin, end)")
+    if inter3 ==None:
+        print("Please input the interval for the third variable in the format (variable, begin, end)")
+    
+    
+    
+    if isinstance(func, tuple(sp.core.all_classes)):
+        if func.is_Vector:
+            func = tuple(func.components.values())
+    
+    assert len(func)==3, "the field must have three elements"
+    
+            
+            
+    xx, yy, zz = np.meshgrid(np.random.uniform(inter1[1],inter1[2],points),
+                      np.random.uniform(inter2[1],inter2[2],points),
+                      np.random.uniform(inter3[1],inter3[2],points))
+
+
+
+    func_np = sp.lambdify([var1,var2,var3],func)
+
+    u,v,w = func_np(xx,yy,zz)
+    u,v,w = normalize(u), normalize(v), normalize(w)
+    
+    
+    
+    xx,yy,zz,u,v,w = flatten_vf(xx,yy,zz,u,v,w)
+    
+    if fig == False:
+        fig = go.Figure()
+        fig.add_cone(x= xx,y = yy,z = zz,u = u,v = v,w = w, colorscale='Blues',
+    sizemode=sizemode, sizeref = sizeref)
+        
+        fig.show()
+    
+    else:
+        fig.add_cone(x= xx,y = yy,z = zz,u = u,v = v,w = w, colorscale='Blues',
+    sizemode=sizemode, sizeref = sizeref)
+    
+    
+
+
+#normalizing an array
+def normalize(array):
+    return (array - np.mean(array))/(np.max(array)-np.min(array))
+
+
+#flattening of lists
+def flatten_vf(x, y, z, u, v, w):
+    return x.flatten(), y.flatten(), z.flatten(), u.flatten(), v.flatten(), w.flatten()
+            
         
         
 # construct plane given three points using normal vector 
@@ -572,3 +648,24 @@ def line_integral_scalar(field,curve,a):
     return sp.integrate(integrand,a).simplify()
 
 
+#Line integral for a vectorial field
+def line_integral_vectorial(field,curve,a):
+    '''
+    field: Vector field F(x,y,z) = P(x,y,z)i + R(x,y,z)j + Q(x,y,z)k
+    curve: parametrized curve r(t) = x(t)i + y(t)j + z(t)k
+    a:(Tuple) (parameter of the curve, initial point, final point)
+    Note: if the field is tridimensional, the curve also must have the same dimension. 
+    
+    '''
+    f = tuple(field.components.values())
+    c = tuple(curve.components.values())
+    assert len(c)==len(f), "Error: Dimensionaluity of the field and the curve must be equal."
+    
+    # parametrizing the field using the curve equation
+    parametrized_field =field.subs(x,curve.dot(R.i)).subs(y,curve.dot(R.j)).subs(z,curve.dot(R.k))
+    
+    
+    integrand = parametrized_field.dot(curve.diff())
+    
+        
+    return sp.integrate(integrand,a)
