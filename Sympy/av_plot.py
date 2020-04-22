@@ -543,7 +543,7 @@ def plot3d_vector_field(func, inter1 = None, inter2 = None, inter3 = None, fig =
     func_np = sp.lambdify([var1,var2,var3],func)
 
     u,v,w = func_np(xx,yy,zz)
-    u,v,w = normalize(u), normalize(v), normalize(w)
+    u,v,w = normalize(u), normalize(v),normalize(w)
     
     
     
@@ -566,6 +566,12 @@ def plot3d_vector_field(func, inter1 = None, inter2 = None, inter3 = None, fig =
 #normalizing an array
 def normalize(array):
     return (array - np.mean(array))/(np.max(array)-np.min(array))
+
+# normalize a mesh of vectors
+def normalize_mesh(u,v,w):
+    l = u**2 + v**2 + w**2
+    l_norm = (l - np.mean(l))/(np.max(l)-np.min(l))
+    return u/l_norm, v/l_norm, w/l_norm
 
 
 #flattening of lists
