@@ -587,7 +587,7 @@ def plane_1(a,b,c):
     '''
     x, y , z = sp.symbols("x y z")
     plane_temp = sp.Plane(sp.Point3D(*a),sp.Point3D(*b),sp.Point3D(*c))
-    vn = plane_temp.normal_vector;
+    vn = plane_temp.normal_vector
     
     return -(vn[0]*(x-a[0])+vn[1]*(y-a[1]))/vn[2] + a[2]
 
@@ -630,7 +630,13 @@ def UB(curve): return (UT(curve)^UN(curve)).simplify()
 def curvature(curve): return Norm(UT(curve).diff())/Norm(curve.diff())
 
 # Torsion of a curve
-def torsion(curve): return (curve.diff().cross(curve.diff(t,2))).dot(curve.diff(t,3))/Norm(curve.diff().cross(curve.diff(t,2)))
+def torsion(curve , t=None): 
+    # t: is the parameter of the curve
+    import sympy as sp
+    if t ==None:
+        t = sp.symbols('t')
+
+    return (curve.diff().cross(curve.diff(t,2))).dot(curve.diff(t,3))/Norm(curve.diff().cross(curve.diff(t,2)))
 
 #Line Integral for a scalar field
 def line_integral_scalar(field,curve,a):
@@ -666,6 +672,9 @@ def line_integral_vectorial(field,curve,a):
     f = tuple(field.components.values())
     c = tuple(curve.components.values())
     assert len(c)==len(f), "Error: Dimensionaluity of the field and the curve must be equal."
+
+    #taking the name of the coordinate system. Here we assume that the filed and curve are using the same coordinate system
+    R = list(curve.separate().keys())[0]
     
     # parametrizing the field using the curve equation
     parametrized_field =field.subs(x,curve.dot(R.i)).subs(y,curve.dot(R.j)).subs(z,curve.dot(R.k))
