@@ -632,7 +632,7 @@ def curvature(curve): return Norm(UT(curve).diff())/Norm(curve.diff())
 # Torsion of a curve
 def torsion(curve , t=None): 
     # t: is the parameter of the curve
-    import sympy as sp
+
     if t ==None:
         t = sp.symbols('t')
 
