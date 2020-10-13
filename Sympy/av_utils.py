@@ -57,7 +57,7 @@ def plot_curve3d(x , y , z, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Pl
 def plot3d_parametric_curve(func, inter1 = None, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Surface Plot', points = 50,aspectmode = 'data'):
 
     '''
-    - func: must be a either a tuple with three components (e.g. Sympy objects) or a parametric equation in the class sympy.vector
+    - func: must be either a tuple with three components (e.g. Sympy objects) or a parametric equation in the class sympy.vector
     - inter1: (parameter, start, end)
     '''
     
@@ -65,7 +65,7 @@ def plot3d_parametric_curve(func, inter1 = None, fig = False, xtitle = 'X', ytit
         print("Please input the interval for the first parameter in the format (parameter, begin, end)")
 
     
-    import sympy as sp
+
     if isinstance(func, tuple(sp.core.all_classes)):
         if func.is_Vector:
             func = tuple(func.components.values())
