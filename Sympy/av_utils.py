@@ -66,7 +66,7 @@ def plot3d_parametric_curve(func, inter1 = None, fig = False, xtitle = 'X', ytit
 
     
 
-    if isinstance(func, tuple(sp.core.all_classes)):
+    if isinstance(func, sp.Expr):
         if func.is_Vector:
             func = tuple(func.components.values())
 
@@ -74,7 +74,7 @@ def plot3d_parametric_curve(func, inter1 = None, fig = False, xtitle = 'X', ytit
     assert len(func) ==3, 'The parametric equation of a 3D surface must has 3 components.'
 
     #check if the parameters of the equation are the same as parameters declared in the intervals.
-    params = [func[i].free_symbols for i in range(len(func)) if isinstance(func[i], tuple(sp.core.all_classes)) ]
+    params = [func[i].free_symbols for i in range(len(func)) if isinstance(func[i], sp.Expr) ]
     params_unique = set([item for sublist in params for item in sublist])
     assert params_unique == set([inter1[0]]), "The parameters of the function aren't the same as the ones declared in the intervals"
     
@@ -313,7 +313,7 @@ def plot3d(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle
         print("Please input the interval for the second variable in the format (variable, begin, end)")
     
     import sympy as sp
-    if not isinstance(func, tuple(sp.core.all_classes)):
+    if not isinstance(func, sp.Expr):
         func = sp.sympify(str(func))
     assert func.free_symbols ==set([inter1[0],inter2[0]]), "The variables of the function aren't the same as the declared in the intervals"
     
@@ -357,7 +357,7 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
         print("Please input the interval for the second parameter in the format (parameter, begin, end)")
     
     import sympy as sp
-    if isinstance(func, tuple(sp.core.all_classes)):
+    if isinstance(func, sp.Expr):
         if func.is_Vector:
             func = tuple(func.components.values())
 
@@ -407,7 +407,7 @@ def plot_density_function(func, inter1 = None, inter2 = None, fig = False, xtitl
         print("Please input the interval for the second variable in the format (variable, begin, end)")
     
     import sympy as sp
-    if not isinstance(func, tuple(sp.core.all_classes)):
+    if not isinstance(func, sp.Expr):
         func = sp.sympify(str(func))
     assert func.free_symbols ==set([inter1[0],inter2[0]]), "The variables of the function aren't the same as the declared in the intervals"
     
@@ -459,7 +459,7 @@ def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None,
     
     
     import sympy as sp
-    if not isinstance(func, tuple(sp.core.all_classes)):
+    if not isinstance(func, sp.Expr):
         func = sp.sympify(str(func))
     assert func.free_symbols ==set([inter1[0],inter2[0],inter3[0]]), "The variables of the function aren't the same as the declared in the intervals"
     
@@ -526,7 +526,7 @@ def plot3d_vector_field(func, inter1 = None, inter2 = None, inter3 = None, fig =
     
     
     
-    if isinstance(func, tuple(sp.core.all_classes)):
+    if isinstance(func, sp.Expr):
         if func.is_Vector:
             func = tuple(func.components.values())
     
