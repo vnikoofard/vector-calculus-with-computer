@@ -638,6 +638,55 @@ def torsion(curve , t=None):
 
     return (curve.diff().cross(curve.diff(t,2))).dot(curve.diff(t,3))/Norm(curve.diff().cross(curve.diff(t,2)))
 
+#Integral of a parametric curve accepting the boundary condition to determine the constant of integration
+def integral_vector(curve,var, ics=None):
+    """
+    ``curve``: a parametric curve with a coordinate system using sp.Coordsys3D
+    ``var``: the parameter of the curve
+    ``ics``: inicial/boundary conditions in the format of a dictionary {var:t_0, 'x':x_0, 'y':y_0, 'z':z_0}
+    
+    Example
+    =========
+    import sympy as sp
+    import sympy.vector as sv
+    R = sv.CoordSys3D('R')
+    t = sp.symbols('t')
+    def r(t):
+        return 2*t*R.i + t**2*R.j - R.k
+    
+    integral_vector(r(t),t, {t:1,'x':2, 'y':-1, 'z':-1})
+    
+    """
+    
+    c_1,c_2,c_3 = sp.symbols('c_1 c_2 c_3')
+    
+    R = list(curve.separate().keys())[0]
+    
+    x_c = curve.dot(R.i)
+    y_c = curve.dot(R.j)
+    z_c = curve.dot(R.k)
+    x_c_int = sp.integrate(x_c,var)
+    y_c_int = sp.integrate(y_c,var)
+    z_c_int = sp.integrate(z_c,var)
+    v_int = (x_c_int+c_1)*R.i + (y_c_int + c_2)*R.j + (z_c_int + c_3)*R.k
+    
+    if ics is not None:
+        eq_x = sp.Eq(x_c_int.subs(var,ics[var])+c_1,ics['x'])
+        sol_x = sp.solve(eq_x,dict=True)[0][c_1]
+        
+        eq_y = sp.Eq(y_c_int.subs(var,ics[var])+c_2,ics['y'])
+        sol_y = sp.solve(eq_y,dict=True)[0][c_2]
+        
+        eq_z = sp.Eq(z_c_int.subs(var,ics[var])+c_3, ics['z'])
+        sol_z = sp.solve(eq_z,dict=True)[0][c_3]
+        
+        v_int_n = v_int.subs(c_1,sol_x).subs(c_2,sol_y).subs(c_3,sol_z)
+        
+        return v_int_n
+    else:
+
+        return v_int
+
 #Line Integral for a scalar field
 def line_integral_scalar(field,curve,a):
     '''
@@ -663,21 +712,35 @@ def line_integral_scalar(field,curve,a):
 #Line integral for a vectorial field
 def line_integral_vectorial(field,curve,a):
     '''
-    field: Vector field F(x,y,z) = P(x,y,z)i + R(x,y,z)j + Q(x,y,z)k
-    curve: parametrized curve r(t) = x(t)i + y(t)j + z(t)k
-    a:(Tuple) (parameter of the curve, initial point, final point)
-    Note: if the field is tridimensional, the curve also must have the same dimension. 
+    ``field``: Vector field F(x,y,z) = P(x,y,z)i + R(x,y,z)j + Q(x,y,z)k. The parameters of the field must be `x`,`y` and `z`
+    ``curve``: parametrized curve r(t) = x(t)i + y(t)j + z(t)k
+    ``a``:(Tuple) (parameter of the curve, initial point, final point)
+    **Note**: if the field is tridimensional, the curve also must have the same dimensions. 
+
+    Example:
+    =====
+    import sympy as sp
+    import sympy.vector as sv
+    R = sv.CoordSys3D('R')
+    t,x,y,z = sp.symbols('t x y z')
+    def f(x,y,z):
+        x*R.i + y*z*R.j + x*z*R.k
+    def r(t):
+        return 2*t*R.i + t**2*R.j - R.k
+    
+    line_integral_vectorial(f, r(t), (t,-1,2))
     
     '''
-    f = tuple(field.components.values())
-    c = tuple(curve.components.values())
-    assert len(c)==len(f), "Error: Dimensionaluity of the field and the curve must be equal."
 
     #taking the name of the coordinate system. Here we assume that the filed and curve are using the same coordinate system
     R = list(curve.separate().keys())[0]
     
+    x_c  = curve.dot(R.i)
+    y_c  = curve.dot(R.j)
+    z_c  = curve.dot(R.k)
+    
     # parametrizing the field using the curve equation
-    parametrized_field =field.subs(x,curve.dot(R.i)).subs(y,curve.dot(R.j)).subs(z,curve.dot(R.k))
+    parametrized_field =field.subs(x, x_c).subs(y, y_c).subs(z, z_c)
     
     
     integrand = parametrized_field.dot(curve.diff())
