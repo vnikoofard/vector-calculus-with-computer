@@ -2,7 +2,7 @@
 
 import plotly.graph_objects as go
 import sympy as sp
-
+import pandas as pd
 import numpy as np
 
 # 2D curve plot
@@ -197,8 +197,100 @@ def position_vector3d(x_0, y_0, z_0, ratio1 = 0.1, ratio2 = 1/3, fig=False, colo
         fig.update_xaxes(showgrid=False, zeroline=False)
         fig.update_yaxes(showgrid=False, zeroline=False)
 
+def vector(x ,y ,u, v, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgrid = True, zeroline=True, lw=3):
+    
+    '''
+    (x,y): initial point of the vector
+    (u ,v): the projection of the vector along x and y axis
+    
+    
+    The ideia of the below function is as follow. First, we write the parametric equation for the segment of 
+    the line that pass through $(0,0)$ and $(x_0, y_0)$. It is 
+    $$
+    \vec r(t) = \begin{cases}
+    x = (x_1 - x_0) t + x_0 \\
+    y = (y_1 - y_0) t + y_0
+    \end{cases}
+     = 
+     \begin{cases}
+    x = a t + x_0 \\
+    y = b t + y_0
+    \end{cases}
+    $$
+    Then using the variable *rt1* we decide about the proportion of the head of the vector em relation to 
+    the total length of vector. The variable *rt2* is about the proportion of the base 
+    of the triangle em relation to its altitude. *l* is the total length of the vector. *t = 1-ratio1* is the 
+    parameter of the line $\vec r(t)$ that the base of the head is located, 
+    we call this point as $(\hat x , \hat y)$. Through this point, perpendicular to the $\vec r$ passes 
+    another line that is base of the head. The equation of this line is 
+    $$
+    \vec{r^\prime} = \begin{cases}
+    x = b s + \hat x \\
+    y = -a s + \hat y
+    \end{cases}
+    $$
+    Now we want to find other two corners of the head, beside $(x_0,y_0)$. These two points are located of 
+    the both side of $(\hat x , \hat y)$ with the distance $\frac{lenght2}{2}$. 
+    The value of parameter $s$ associated with these points is $\hat s = \pm \frac{length2}{2 l}$. 
+    So these two points are 
+    $(b \hat s +\hat x, -a \hat s + \hat y)$ and $(-b \hat s +\hat x, a \hat s +\hat y)$.
+    
+    Example:
+    ========
+    R = sv.CoordSys3D("R")
+    x,y,z = sp.symbols('x y z')
+    def field1(x,y): return -y*R.i + x*R.j
+    xx, yy = np.mgrid[-5:5:5j, -5:5:5j]
+    field1_np = sp.lambdify([x,y], list(field1(x,y).components.values()), 'numpy')
+    u,v = field1_np(xx,yy)
+    f = vector(x=xx.flatten(),y=yy.flatten(), u=u.flatten(), v=v.flatten())
+    '''
+    df = pd.DataFrame(columns=['x','y'])
+
+    for x_0,u,y_0,v in zip(x,u,y,v):
+        x_1 = x_0 + u
+        y_1 = y_0 + v
+
+        a = x_1 - x_0
+        b = y_1 - y_0
         
-def vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgrid = True, zeroline=True, lw=3):
+        l = np.sqrt(a**2 + b**2)
+        length1 = rt1 *l
+        length2 = rt2 * length1
+
+        t = (1-rt1)
+        x_bar , y_bar = a * t + x_0, b * t + y_0
+        
+        s_bar = length2/(2*l)
+
+        x_11 = b*s_bar+x_bar
+        x_12 = -b*s_bar+x_bar
+        y_11 = -a*s_bar +y_bar
+        y_12 = a*s_bar+y_bar
+
+        df = df.append({'x':x_1, 'y':y_1}, ignore_index=True)
+        df = df.append({'x':x_11, 'y':y_11}, ignore_index=True)
+        df = df.append({'x':x_12, 'y':y_12}, ignore_index=True)
+        df = df.append({'x':x_1, 'y':y_1}, ignore_index=True)
+        df = df.append({'x':None, 'y':None}, ignore_index=True)
+        df = df.append({'x':x_0, 'y':y_0}, ignore_index=True)
+        df = df.append({'x':x_bar, 'y':y_bar}, ignore_index=True)
+        df = df.append({'x':None, 'y':None}, ignore_index=True)
+    
+    if fig==False:
+        fig = go.Figure()
+        fig.add_scatter(x = df.x, y=df.y,fill='toself', mode = 'lines', opacity=1,line_color = color, line_width=lw)
+        fig.update_layout(yaxis=dict(scaleanchor="x", scaleratio=1),showlegend = False)
+        fig.update_xaxes(showgrid=showgrid, zeroline=zeroline)
+        fig.update_yaxes(showgrid=showgrid, zeroline=zeroline)
+        fig.show()
+    else:
+        fig.add_scatter(x = df.x, y=df.y,fill='toself', mode = 'lines', opacity=1,line_color = color, line_width=lw)
+        fig.update_layout(yaxis=dict(scaleanchor="x", scaleratio=1),showlegend = False)
+        fig.update_xaxes(showgrid=showgrid, zeroline=zeroline)
+        fig.update_yaxes(showgrid=showgrid, zeroline=zeroline)        
+
+def plot_vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgrid = True, zeroline=True, lw=3):
     
     '''
     (x_0,y_0): initial point of the vector
@@ -238,9 +330,6 @@ def vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', sh
    
     '''
     
-    import plotly.graph_objects as go
-    import numpy as np
-    
     a = x_1 - x_0
     b = y_1 - y_0
     
@@ -277,10 +366,6 @@ def vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', sh
     
     
 def vector3d(x_0, y_0, z_0, x_1, y_1, z_1, ratio1 = 0.1, ratio2 = 1/3, fig=False, color = 'royalblue', lw = 6):
-    
-    import plotly.graph_objects as go
-    import numpy as np
-    
     
     if fig == False:
         fig = go.Figure()
