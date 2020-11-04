@@ -203,6 +203,9 @@ def vector(x ,y ,u, v, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgri
     (x,y): initial point of the vector
     (u ,v): the projection of the vector along x and y axis
     
+    for x_0,u,y_0,v in zip(x,u,y,v):
+        x_1 = x_0 + u
+        y_1 = y_0 + v
     
     The ideia of the below function is as follow. First, we write the parametric equation for the segment of 
     the line that pass through $(0,0)$ and $(x_0, y_0)$. It is 
@@ -290,6 +293,7 @@ def vector(x ,y ,u, v, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgri
         fig.update_xaxes(showgrid=showgrid, zeroline=zeroline)
         fig.update_yaxes(showgrid=showgrid, zeroline=zeroline)        
 
+# it is an old version of `vector` method. This old version needs a loop to plot multiple vectors
 def plot_vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgrid = True, zeroline=True, lw=3):
     
     '''
