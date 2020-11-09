@@ -6,27 +6,25 @@ import pandas as pd
 import numpy as np
 import sympy.vector as sv
 
+
 # 2D curve plot
-def plot_curve(x, y, fig=False, xtitle='X', ytitle='Y', title='2D Plot', lw=5):
-    
-    if fig == False:
+def plot_curve(x, y, fig=False, xtitle='X', ytitle='Y', title='2D Plot', lw=5):    
+    if fig is False:
         fig = go.Figure()
-        fig.add_scatter(x= x , y = y, showlegend=False, mode ='lines',line_width=lw)
+        fig.add_scatter(x=x , y = y, showlegend=False, mode ='lines',line_width=lw)
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title= ytitle, yaxis=dict(scaleanchor="x", scaleratio=1))
-        fig.show()
-    
+        fig.show()    
     else:
-        fig.add_scatter(x = x , y = y, showlegend=False,mode ='lines', line_width=lw)
+        fig.add_scatter(x=x, y=y, showlegend=False, mode ='lines', line_width=lw)
         fig.update_layout(title=title, xaxis_title=xtitle,
-                          yaxis_title= ytitle,yaxis=dict(scaleanchor="x", scaleratio=1)) 
-        
+                          yaxis_title=ytitle, yaxis=dict(scaleanchor="x", scaleratio=1))         
+
 
 # 3D curve plot
-
 def plot_curve3d(x , y , z, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Plot', aspectmode='data', lw =5):
     
-    if fig == False:
+    if fig is False:
         fig = go.Figure()
         fig.add_scatter3d(x= x , y = y, z =z, showlegend=False, mode ='lines',line_width=lw)
         fig.update_layout(title=title, xaxis_title=xtitle, yaxis_title= ytitle, 
