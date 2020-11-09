@@ -4,9 +4,10 @@ import plotly.graph_objects as go
 import sympy as sp
 import pandas as pd
 import numpy as np
+import sympy.vector as sv
 
 # 2D curve plot
-def plot_curve(x , y , fig = False,xtitle = 'X', ytitle= 'Y', title='2D Plot', lw =5):
+def plot_curve(x, y, fig=False, xtitle='X', ytitle='Y', title='2D Plot', lw=5):
     
     if fig == False:
         fig = go.Figure()
@@ -140,8 +141,6 @@ def position_vector(x_0,y_0, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', s
     So these two points are 
     $(y_0 \hat s +\hat x, -x_0 \hat s + \hat y)$ and $(-y_0 \hat s +\hat x, x_0 \hat s +\hat y)$.
     '''
-    import plotly.graph_objects as go
-    import numpy as np
     
     l = np.sqrt((x_0)**2 + (y_0)**2)
     length1 = rt1 *l
@@ -176,9 +175,6 @@ def position_vector(x_0,y_0, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', s
 
         
 def position_vector3d(x_0, y_0, z_0, ratio1 = 0.1, ratio2 = 1/3, fig=False, color = 'black', lw=2):
-    
-    import plotly.graph_objects as go
-    import numpy as np
     
     if fig == False:
         fig = go.Figure()
@@ -547,7 +543,6 @@ def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None,
         print("Please input the interval for the third variable in the format (variable, begin, end)")
     
     
-    import sympy as sp
     if not isinstance(func, sp.Expr):
         func = sp.sympify(str(func))
     assert func.free_symbols ==set([inter1[0],inter2[0],inter3[0]]), "The variables of the function aren't the same as the declared in the intervals"
@@ -836,3 +831,85 @@ def line_integral_vectorial(field,curve,a):
     
         
     return sp.integrate(integrand,a)
+
+# gradient in Cartesian coordinate system
+def gradient(func, point=None, coordinate=None):
+    """
+    - Arguments:
+        ``func``: A function with 2 or 3 variables in the Cartesian coordinate system (x,y) or (x,y,z). 
+        ``point``: optional. A point in the plano or space.
+        ``coordinate``: optional. The name of the coordinate system.
+    - Return:
+        ``grad``: The gradient of the function
+    """
+    vars = (list(sp.ordered(func.free_symbols)))
+
+    if not coordinate:
+        R = sv.CoordSys3D('R')
+    else:
+        R = coordinate
+     
+    if len(vars)==3:
+        grad = func.diff(vars[0])*R.i + func.diff(vars[1])*R.j + func.diff(vars[2])*R.k
+    else:
+        grad = func.diff(vars[0])*R.i + func.diff(vars[1])*R.j
+    
+    if point:
+        if len(vars)==3:
+            grad = grad.subs({vars[0]:point[0], vars[1]:point[1], vars[2]:point[2]})
+        else:
+            grad = grad.subs({vars[0]:point[0], vars[1]:point[1]})
+
+    return grad
+
+
+# Curl in the Cartesian coordinate system   
+def rotacional(func, point=None, coordinate=None):
+    """
+    - Arguments:
+        ``func``: A function with 3 variables in the Cartesian coordinate system (x,y,z). 
+        ``point``: optional. A point in the plano or space.
+        ``coordinate``: optional. The name of the coordinate system.
+    - Return:
+        ``curl``: The curl of the function
+    """
+    if coordinate:
+        R = coordinate
+    else:
+        R = sv.CoordSys3D('R')
+    func_x = func & R.i
+    func_y = func & R.j
+    func_z = func & R.k
+    curl_x = func_z.diff(y) - func_y.diff(z)
+    curl_y = func_x.diff(z) - func_z.diff(x)
+    curl_z = func_y.diff(x) - func_x.diff(y)
+    curl = curl_x*R.i + curl_y*R.j + curl_z*R.k
+    if point:
+        curl = curl.subs({x:point[0], y:point[1], z:point[2]})
+
+    return curl
+    
+# Divergent in the Cartesian coordinate system
+def divergente(func, point=None, coordinate=None):
+    """
+    - Arguments:
+        ``func``: A function with 3 variables in the Cartesian coordinate system (x,y,z). 
+        ``point``: optional. A point in the plano or space.
+        ``coordinate``: optional. The name of the coordinate system.
+    - Return:
+        ``div``: The divergent of the function
+    """
+    if coordinate:
+        R = coordinate
+    else:
+        R = sv.CoordSys3D('R')
+    func_x = func & R.i
+    func_y = func & R.j
+    func_z = func & R.k
+
+    div = func_x.diff(x) + func_y.diff(y) + func_z.diff(z)
+
+    if point:
+        div = div.subs({x:point[0], y:point[1], z:point[2]})
+    
+    return div
