@@ -5,7 +5,7 @@ import sympy as sp
 import pandas as pd
 import numpy as np
 import sympy.vector as sv
-
+import plotly.figure_factory as ff
 
 # 2D curve plot
 def plot_curve(x, y, fig=False, xtitle='X', ytitle='Y', title='2D Plot', lw=5):    
@@ -583,28 +583,32 @@ def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None,
         
         
 # plotting a 3D vector field
-def plot3d_vector_field(func, inter1 = None, inter2 = None, inter3 = None, fig = False, points=15, sizemode="scaled", sizeref=1):
+def plot3d_vector_field(func, inter1=None, inter2=None, inter3 = None, fig = None, points=15, sizemode=None, sizeref=1):
     
     
     '''
-    func: must be vector field with three variables, with Sympy symbols in the format of a vector or tuple
-    inter1: (variable1, start, end)
-    inter2: (variable2, start, end)
-    inter3: (variable2, start, end)
+    - Arguments:
+        ``func``: must be vector field with three variables, with Sympy symbols in the format of a vector or tuple
+        ``inter1``: (variable1, start, end)
+        ``inter2``: (variable2, start, end)
+        ``inter3``: (variable3, start, end)
+    - Return:
+        ``fig``: a Plotly figure object
     '''
+    
+    
+    vars = list(sp.ordered(func.free_symbols))
+    if inter1 is None:
+        inter1 = (vars[0], -5,5)
+    if inter2 is None:
+        inter2 = (vars[1], -5,5)
+    if inter3 is None:
+        inter3 = (vars[2], -5,5)
     
     var1 = inter1[0]
     var2 = inter2[0]
     var3 = inter3[0]
-    
-    
-    
-    if inter1 ==None:
-        print("Please input the interval for the first variable in the format (variable, begin, end)")
-    if inter2 ==None:
-        print("Please input the interval for the second variable in the format (variable, begin, end)")
-    if inter3 ==None:
-        print("Please input the interval for the third variable in the format (variable, begin, end)")
+    num = eval(str(points) +'j')
     
     
     
@@ -614,12 +618,7 @@ def plot3d_vector_field(func, inter1 = None, inter2 = None, inter3 = None, fig =
     
     assert len(func)==3, "the field must have three elements"
     
-            
-            
-    xx, yy, zz = np.meshgrid(np.random.uniform(inter1[1],inter1[2],points),
-                      np.random.uniform(inter2[1],inter2[2],points),
-                      np.random.uniform(inter3[1],inter3[2],points))
-
+    xx,yy,zz = np.mgrid[inter1[1]:inter1[2]:num, inter2[1]:inter2[2]:num, inter3[1]:inter3[2]:num]        
 
 
     func_np = sp.lambdify([var1,var2,var3],func)
@@ -631,18 +630,64 @@ def plot3d_vector_field(func, inter1 = None, inter2 = None, inter3 = None, fig =
     
     xx,yy,zz,u,v,w = flatten_vf(xx,yy,zz,u,v,w)
     
-    if fig == False:
+    if fig is None:
         fig = go.Figure()
         fig.add_cone(x= xx,y = yy,z = zz,u = u,v = v,w = w, colorscale='Blues',
     sizemode=sizemode, sizeref = sizeref)
-        
-        fig.show()
-    
+        return fig
+            
     else:
         fig.add_cone(x= xx,y = yy,z = zz,u = u,v = v,w = w, colorscale='Blues',
     sizemode=sizemode, sizeref = sizeref)
+        return fig
+
+
+# Plot a 2D vector field    
+def plot_vector_field(func, inter1, inter2, fig = None, points=15, arrow_scale = 0.1,name=None):
+
+    '''
+    - Arguments:
+        ``func``: must be vector field with three variables, with Sympy symbols in the format of a vector or tuple
+        ``inter1``: (variable1, start, end)
+        ``inter2``: (variable2, start, end)
+    - Return:
+        ``fig``: a Plotly figure object
+    '''
     
+    vars = list(sp.ordered(func.free_symbols))
+    if inter1 is None:
+        inter1 = (vars[0], -5,5)
+    if inter2 is None:
+        inter2 = (vars[1], -5,5)
+   
+        
+    var1 = inter1[0]
+    var2 = inter2[0]
+    num = eval(str(points) +'j')   
+
+    if isinstance(func, sp.Expr):
+        if func.is_Vector:
+            func = tuple(func.components.values())
     
+    assert len(func)==2, "the field must have two elements"
+
+    if name is None:
+        name = str(func)
+    
+    xx,yy = np.mgrid[inter1[1]:inter1[2]:num, inter2[1]:inter2[2]:num]        
+
+    func_np = sp.lambdify([var1,var2],func)
+
+    u,v = func_np(xx,yy)
+        
+    if fig is None:
+        fig = ff.create_quiver(xx, yy, u, v, arrow_scale=arrow_scale, name=name)
+        return fig
+    
+    else:
+        f = ff.create_quiver(xx, yy, u, v, arrow_scale=arrow_scale,name=name);
+        fig.add_trace(*f.data)
+        return fig   
 
 
 #normalizing an array
