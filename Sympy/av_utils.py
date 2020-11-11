@@ -643,7 +643,7 @@ def plot3d_vector_field(func, inter1=None, inter2=None, inter3 = None, fig = Non
 
 
 # Plot a 2D vector field    
-def plot_vector_field(func, inter1, inter2, fig = None, points=15, arrow_scale = 0.1,name=None):
+def plot_vector_field(func, inter1=None, inter2=None, fig = None, points=15, arrow_scale = 0.1,name=None):
 
     '''
     - Arguments:
@@ -885,23 +885,21 @@ def gradient(func, point=None, coordinate=None):
     - Return:
         ``grad``: The gradient of the function
     """
-    vars = (list(sp.ordered(func.free_symbols)))
+    #vars = (list(sp.ordered(func.free_symbols)))
 
     if not coordinate:
         R = sv.CoordSys3D('R')
     else:
         R = coordinate
      
-    if len(vars)==3:
-        grad = func.diff(vars[0])*R.i + func.diff(vars[1])*R.j + func.diff(vars[2])*R.k
-    else:
-        grad = func.diff(vars[0])*R.i + func.diff(vars[1])*R.j
+    grad = func.diff(x)*R.i + func.diff(y)*R.j + func.diff(z)*R.k
+    
     
     if point:
-        if len(vars)==3:
-            grad = grad.subs({vars[0]:point[0], vars[1]:point[1], vars[2]:point[2]})
+        if len(point)==3:
+            grad = grad.subs({x:point[0], y:point[1], z:point[2]})
         else:
-            grad = grad.subs({vars[0]:point[0], vars[1]:point[1]})
+            grad = grad.subs({x:point[0], y:point[1]})
 
     return grad
 
@@ -956,3 +954,43 @@ def divergente(func, point=None, coordinate=None):
         div = div.subs({x:point[0], y:point[1], z:point[2]})
     
     return div
+    
+# finding the minimum of an univariate function using gradient descent
+def minimum(func, a, alpha=0.01, epochs=100, precision=0.0001):
+    '''
+    func: uma função no formato de Sympy
+    a: um tuple (varivel da função, inicio, fim)
+    '''
+    #fining the derivative of the func
+    derivative = func.diff()
+    #grads = np.zeros((epochs,2))
+
+    #lambdify
+    f = sp.lambdify(a[0], func, 'numpy')
+    deriv = sp.lambdify(a[0], derivative, 'numpy')
+
+    #finding an aproximation of the mininum by a random search
+    l = np.linspace(a[1],a[2], 100)
+    f_min_index = np.argmin(f(l))
+    local_min = l[f_min_index]
+
+    #print(f"inicial local_min is {local_min}")
+
+    # starting the gradient descent
+    for epoch in range(epochs):
+        last_local_min = local_min
+        local_min -= alpha * deriv(local_min)
+        #print(f"the {epoch}th local_min is {local_min}")
+        grads[epoch,:] = local_min, f(local_min)
+        """
+        if abs(f(local_min) - f(last_local_min)) < precision:
+            print('precision')
+            break
+        """
+        if local_min > a[2] or local_min < a[1]:
+            local_min = last_local_min
+            print('out')
+            break
+
+    return local_min #,grads
+
