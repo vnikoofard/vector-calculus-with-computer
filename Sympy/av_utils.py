@@ -981,15 +981,15 @@ def minimum(func, a, alpha=0.01, epochs=100, precision=0.0001):
         last_local_min = local_min
         local_min -= alpha * deriv(local_min)
         #print(f"the {epoch}th local_min is {local_min}")
-        grads[epoch,:] = local_min, f(local_min)
-        """
+        #grads[epoch,:] = local_min, f(local_min)
+        
         if abs(f(local_min) - f(last_local_min)) < precision:
-            print('precision')
+            print('reached the precision')
             break
-        """
+        
         if local_min > a[2] or local_min < a[1]:
             local_min = last_local_min
-            print('out')
+            print('out of interval')
             break
 
     return local_min #,grads
