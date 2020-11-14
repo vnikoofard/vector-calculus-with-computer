@@ -7,13 +7,14 @@ import numpy as np
 import sympy.vector as sv
 import plotly.figure_factory as ff
 
+
 # 2D curve plot
 def plot_curve(x, y, fig=False, xtitle='X', ytitle='Y', title='2D Plot', lw=5):    
     if fig is False:
         fig = go.Figure()
-        fig.add_scatter(x=x , y = y, showlegend=False, mode ='lines',line_width=lw)
+        fig.add_scatter(x=x, y=y, showlegend=False, mode='lines', line_width=lw)
         fig.update_layout(title=title, xaxis_title=xtitle,
-                          yaxis_title= ytitle, yaxis=dict(scaleanchor="x", scaleratio=1))
+                          yaxis_title=ytitle, yaxis=dict(scaleanchor="x", scaleratio=1))
         fig.show()    
     else:
         fig.add_scatter(x=x, y=y, showlegend=False, mode ='lines', line_width=lw)
@@ -26,10 +27,11 @@ def plot_curve3d(x , y , z, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Pl
     
     if fig is False:
         fig = go.Figure()
-        fig.add_scatter3d(x= x , y = y, z =z, showlegend=False, mode ='lines',line_width=lw)
+        fig.add_scatter3d(x=x, y=y, z=z, showlegend=False,
+                          mode='lines', line_width=lw)
         fig.update_layout(title=title, xaxis_title=xtitle, yaxis_title= ytitle, 
-            scene=dict(camera=dict(eye=dict(x=1.15, y=1.15, z=0.8)), #the default values are 1.25, 1.25, 1.25
-            xaxis=dict(),
+                          scene=dict(camera=dict(eye=dict(x=1.15, y=1.15, z=0.8)), #the default values are 1.25, 1.25, 1.25
+                          xaxis=dict(),
            yaxis=dict(),
            zaxis=dict(),
            aspectmode=aspectmode, #this string can be 'data', 'cube', 'auto', 'manual'
@@ -39,31 +41,41 @@ def plot_curve3d(x , y , z, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Pl
         fig.show()
     
     else:
-        fig.add_scatter3d(x = x , y = y, z =z, showlegend=False,mode ='lines', line_width=lw)
+        fig.add_scatter3d(x=x, y=y, z=z, showlegend=False, mode='lines', 
+                        line_width=lw)
         fig.update_layout(title=title, xaxis_title=xtitle,
-                          yaxis_title= ytitle, 
-            scene=dict(camera=dict(eye=dict(x=1.15, y=1.15, z=0.8)), #the default values are 1.25, 1.25, 1.25
-            xaxis=dict(),
-           yaxis=dict(),
-           zaxis=dict(),
-           aspectmode= aspectmode, #this string can be 'data', 'cube', 'auto', 'manual'
-           #a custom aspectratio is defined as follows:
-           aspectratio=dict(x=1, y=1, z=0.95)
-           )) 
-        
+                        yaxis_title=ytitle, 
+                        scene=dict(camera=dict(eye=dict(x=1.15, y=1.15, z=0.8)),  # the default values are 1.25, 1.25, 1.25
+                        xaxis=dict(),
+                        yaxis=dict(),
+                        zaxis=dict(),
+                        aspectmode=aspectmode,  # this string can be 'data', 'cube', 'auto', 'manual'
+                        # a custom aspectratio is defined as follows:
+                        aspectratio=dict(x=1, y=1, z=0.95)
+                        )) 
+    return fig
+
 
 # Plot a parametric curve in 3D
-def plot3d_parametric_curve(func, inter1 = None, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Surface Plot', points = 50,aspectmode = 'data'):
+def plot3d_parametric_curve(func, inter1=None, fig=False, xtitle='X', ytitle='Y', 
+                            title='3D Curve Plot', points=50,
+                            aspectmode='data'):
 
     '''
-    - func: must be either a tuple with three components (e.g. Sympy objects) or a parametric equation in the class sympy.vector
-    - inter1: (parameter, start, end)
+    - Arguments:
+    	``func``: must be either a tuple with three components (e.g. Sympy objects) or a parametric equation in the class sympy.vector
+    	``inter1``: (parameter, start, end)
+    	``fig``: A plotly figure object
+    	``xtitle``: x-axis title
+    	``ytitle``: y-axis title
+    	``title``: title of the figure
+    	``points``: the number of points to plot the curve
+    	``aspectmode``: a parameter of figure object
+    - Return:
+        A figure object of Plotly
     '''
-    
-    if inter1 == None:
+    if inter1 is None:
         print("Please input the interval for the first parameter in the format (parameter, begin, end)")
-
-    
 
     if isinstance(func, sp.Expr):
         if func.is_Vector:
@@ -98,11 +110,11 @@ def plot3d_parametric_curve(func, inter1 = None, fig = False, xtitle = 'X', ytit
     if fig == False:
         
         
-        plot_curve3d(x = xx , y = yy, z = zz, xtitle = xtitle, ytitle= ytitle, title=title,aspectmode = aspectmode)
+        return plot_curve3d(x = xx , y = yy, z = zz, xtitle = xtitle, ytitle= ytitle, title=title,aspectmode = aspectmode)
         
     
     else:
-        plot_curve3d(x = xx , y = yy, z = zz, fig = fig, xtitle = xtitle, ytitle= ytitle, title=title, aspectmode=aspectmode)
+        return plot_curve3d(x = xx , y = yy, z = zz, fig = fig, xtitle = xtitle, ytitle= ytitle, title=title, aspectmode=aspectmode)
         
 
 
