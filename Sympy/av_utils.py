@@ -850,7 +850,7 @@ def line_integral_scalar(field,curve,a):
   
     integrand = (parametrized_field*module).simplify()
         
-    return sp.integrate(integrand,a).simplify()
+    return sp.integrate(integrand,a).evalf()
 
 
 #Line integral for a vectorial field
@@ -902,7 +902,7 @@ def line_integral_vectorial(field,curve,a):
     integrand = parametrized_field.dot(curve.diff())
     
         
-    return sp.integrate(integrand,a)
+    return sp.integrate(integrand,a).evalf()
 
 # gradient in Cartesian coordinate system
 def gradient(func, point=None, coordinate=None):
