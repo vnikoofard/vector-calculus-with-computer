@@ -829,21 +829,27 @@ def integral_vector(curve,var, ics=None):
 #Line Integral for a scalar field
 def line_integral_scalar(field,curve,a):
     '''
-    field: Scalar field F(x,y,z). NOTE: the function must be inserted without its arguments.
-    curve: parametrized curve r(t) = x(t)i + y(t)j + z(t)k
-    a:(Tuple) (parameter of the curve, initial point, final point)
-    Note: if the field is tridimensional, the curve also must have the same dimension. 
+    - Arguments:
+        `field`: Scalar field F(x,y,z). 
+        `curve`: aparametrized curve r(t) = x(t)i + y(t)j + z(t)k
+        `a`:(Tuple) (parameter of the curve, initial point, final point)
+        Note: if the field is tridimensional, the curve also must have the same dimension. 
+    - Return:
+        line integral of the scalar filed along the curve for the given interval. 
     
     '''
-    
-    c = tuple(curve.components.values())
+    R = list(curve.separate().keys())[0]
+    param = [p for p in curve.free_symbols if not p.is_Vector]
+    assert len(param)==1, "A curve has only one parameter"
+    assert param[0]==a[0], "the parameter of the curve must be the same as the integration variable."
+    rx,ry,rz = curve.dot(R.i),curve.dot(R.j),curve.dot(R.k)
     
     # parametrizing the field using the curve parametric equation
-    parametrized_field = field(*c)
-    module = Norm(curve.diff())
+    parametrized_field = field.subs(x,rx).subs(y,ry).subs(z,rz)
+    module = curve.diff().magnitude().simplify()
         
   
-    integrand = parametrized_field*module
+    integrand = (parametrized_field*module).simplify()
         
     return sp.integrate(integrand,a).simplify()
 
@@ -851,10 +857,14 @@ def line_integral_scalar(field,curve,a):
 #Line integral for a vectorial field
 def line_integral_vectorial(field,curve,a):
     '''
-    ``field``: Vector field F(x,y,z) = P(x,y,z)i + R(x,y,z)j + Q(x,y,z)k. The parameters of the field must be `x`,`y` and `z`
-    ``curve``: parametrized curve r(t) = x(t)i + y(t)j + z(t)k
-    ``a``:(Tuple) (parameter of the curve, initial point, final point)
-    **Note**: if the field is tridimensional, the curve also must have the same dimensions. 
+    - Arguments:
+        `field`: Vector field F(x,y,z) = P(x,y,z)i + R(x,y,z)j + Q(x,y,z)k. The parameters of the field must be `x`,`y` and `z`
+        `curve`: parametrized curve r(t) = x(t)i + y(t)j + z(t)k
+        `a`:(Tuple) (parameter of the curve, initial point, final point)
+        **Note**: the dimensionality of curve and field must be the same. 
+    - Return:
+        line integral of the vectorial filed along the curve for the given interval. 
+
 
     Example:
     =====
@@ -867,17 +877,24 @@ def line_integral_vectorial(field,curve,a):
     def r(t):
         return 2*t*R.i + t**2*R.j - R.k
     
-    line_integral_vectorial(f, r(t), (t,-1,2))
+    line_integral_vectorial(f(x,y,z), r(t), (t,-1,2))
     
     '''
 
     #taking the name of the coordinate system. Here we assume that the filed and curve are using the same coordinate system
     R = list(curve.separate().keys())[0]
+    R_f = list(field.separate().keys())[0]
+
+    assert R==R_f, 'the given filed and curve must be in a same coordinate system'
     
     x_c  = curve.dot(R.i)
     y_c  = curve.dot(R.j)
     z_c  = curve.dot(R.k)
     
+    param = [p for p in curve.free_symbols if not p.is_Vector]
+    assert len(param)==1, "A curve has only one parameter"
+    assert param[0]==a[0], "the parameter of the curve must be the same as the integration variable."
+
     # parametrizing the field using the curve equation
     parametrized_field =field.subs(x, x_c).subs(y, y_c).subs(z, z_c)
     
