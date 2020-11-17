@@ -100,19 +100,17 @@ def plot3d_parametric_curve(func, inter1=None, fig=False, xtitle='X', ytitle='Y'
     xx, yy, zz = xx_np(var1), yy_np(var1), zz_np(var1)
     
     
-    l = [xx,yy,zz]
+    l = [xx, yy, zz]
     for item in range(len(l)):
         if type(item)!= np.ndarray:
             l[item] *= np.ones(var1.shape)
             
     xx, yy, zz = l[0], l[1], l[2]
           
-    if fig == False:
+    if fig is False:
         
+        return plot_curve3d(x=xx , y = yy, z = zz, xtitle = xtitle, ytitle= ytitle, title=title,aspectmode = aspectmode)
         
-        return plot_curve3d(x = xx , y = yy, z = zz, xtitle = xtitle, ytitle= ytitle, title=title,aspectmode = aspectmode)
-        
-    
     else:
         return plot_curve3d(x = xx , y = yy, z = zz, fig = fig, xtitle = xtitle, ytitle= ytitle, title=title, aspectmode=aspectmode)
         
@@ -838,6 +836,7 @@ def line_integral_scalar(field,curve,a):
         line integral of the scalar filed along the curve for the given interval. 
     
     '''
+    x,y,z = sp.symbols('x y z')
     R = list(curve.separate().keys())[0]
     param = [p for p in curve.free_symbols if not p.is_Vector]
     assert len(param)==1, "A curve has only one parameter"
@@ -882,6 +881,7 @@ def line_integral_vectorial(field,curve,a):
     '''
 
     #taking the name of the coordinate system. Here we assume that the filed and curve are using the same coordinate system
+    x,y,z = sp.symbols('x y z')
     R = list(curve.separate().keys())[0]
     R_f = list(field.separate().keys())[0]
 
