@@ -90,38 +90,35 @@ def plot_implicit(func, inter1=None, inter2=None, fig=False, xtitle='X',
         inter1 = (vars[0], -5, 5)
     if inter2 is None:
         inter2 = (vars[1], -5, 5)
-        
-    
-        
-    #assert func.free_symbols == set([inter1[0], inter2[0]]), "The variables of the function aren't the same as the declared in the intervals"
-    
-    func_np = sp.lambdify([inter1[0],inter2[0]], func)
-    
-    xx = np.linspace(inter1[1],inter1[2], points)
-    yy = np.linspace(inter2[1],inter2[2], points)
-    X, Y = np.meshgrid(xx,yy)
-    Z = func_np(X,Y)
-    
-    
-       
+
+    # assert func.free_symbols == set([inter1[0], inter2[0]]), "The variables of the function aren't the same as the declared in the intervals"
+
+    func_np = sp.lambdify([inter1[0], inter2[0]], func)
+
+    xx = np.linspace(inter1[1], inter1[2], points)
+    yy = np.linspace(inter2[1], inter2[2], points)
+    X, Y = np.meshgrid(xx, yy)
+    Z = func_np(X, Y)
+
     if fig is False:
         fig = go.Figure()
         fig.add_contour(x=xx, y=yy, z=Z, showlegend=False, name=str(func),contours_coloring='lines',
-        line_width = 2, colorscale=colorscale,
+        line_width=2, colorscale=colorscale,
         contours=dict(start=0, end=0, size=2))
         fig.update_layout(title=title, xaxis_title=xtitle,
-                          yaxis_title= ytitle,
+                          yaxis_title=ytitle,
                           yaxis=dict(scaleanchor="x", scaleratio=1))
-    
+
     else:
         fig.add_contour(x=xx, y=yy, z=Z, showlegend=False, name=str(func),contours_coloring='lines',
-        line_width = 2, colorscale=colorscale,
+        line_width=2, colorscale=colorscale,
         contours=dict(start=0, end=0, size=2))
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title= ytitle,
                           yaxis=dict(scaleanchor="x", scaleratio=1))
 
     return fig
+
 
 # Plot a parametric curve in 3D
 def plot3d_parametric_curve(func, inter1=None, fig=False, xtitle='X', ytitle='Y', 
@@ -130,14 +127,14 @@ def plot3d_parametric_curve(func, inter1=None, fig=False, xtitle='X', ytitle='Y'
 
     '''
     - Arguments:
-    	``func``: must be either a tuple with three components (e.g. Sympy objects) or a parametric equation in the class sympy.vector
-    	``inter1``: (parameter, start, end)
-    	``fig``: A plotly figure object
-    	``xtitle``: x-axis title
-    	``ytitle``: y-axis title
-    	``title``: title of the figure
-    	``points``: the number of points to plot the curve
-    	``aspectmode``: a parameter of figure object
+        `func`: must be either a tuple with three components (e.g. Sympy objects) or a parametric equation in the class sympy.vector
+        `inter1`: (parameter, start, end)
+        `fig`: A plotly figure object
+        `xtitle`: x-axis title
+        `ytitle`: y-axis title
+        `title`: title of the figure
+        `points`: the number of points to plot the curve
+        `aspectmode`: a parameter of figure object
     - Return:
         A figure object of Plotly
     '''
@@ -148,44 +145,39 @@ def plot3d_parametric_curve(func, inter1=None, fig=False, xtitle='X', ytitle='Y'
         if func.is_Vector:
             func = tuple(func.components.values())
 
-    #check if the parametric equation has three components.        
+    # check if the parametric equation has three components.        
     assert len(func) ==3, 'The parametric equation of a 3D surface must has 3 components.'
 
-    #check if the parameters of the equation are the same as parameters declared in the intervals.
+    # check if the parameters of the equation are the same as parameters declared in the intervals.
     params = [func[i].free_symbols for i in range(len(func)) if isinstance(func[i], sp.Expr) ]
     params_unique = set([item for sublist in params for item in sublist])
     assert params_unique == set([inter1[0]]), "The parameters of the function aren't the same as the ones declared in the intervals"
-    
-    
+
     xx_np = sp.lambdify(inter1[0], func[0])
     yy_np = sp.lambdify(inter1[0], func[1])
     zz_np = sp.lambdify(inter1[0], func[2])
-    
-    var1 = np.linspace(inter1[1],inter1[2],points)
+
+    var1 = np.linspace(inter1[1], inter1[2], points)
     xx, yy, zz = xx_np(var1), yy_np(var1), zz_np(var1)
-    
-    l = [xx, yy, zz]
+
+    l = list(xx, yy, zz)
     for item in range(len(l)):
         if type(item) != np.ndarray:
             l[item] *= np.ones(var1.shape)
-            
+
     xx, yy, zz = l[0], l[1], l[2]
-          
+
     if fig is False:
-        
+
         return plot_curve3d(x=xx, y=yy, z=zz, xtitle=xtitle, ytitle=ytitle, title=title,aspectmode=aspectmode)
-        
+
     else:
         return plot_curve3d(x=xx, y=yy, z=zz, fig=fig, xtitle=xtitle, ytitle=ytitle, title=title, aspectmode=aspectmode)
-        
 
 
-        
-        
 # Position vector originating from origin!
+def position_vector(x_0, y_0, rt1=0.1, rt2=1/3, fig=False, color='black', showgrid=True, zeroline=True, lw=2):
 
-def position_vector(x_0,y_0, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgrid = True, zeroline=True, lw=2):
-    
     '''
     The ideia of the below function is as follow. First, we write the parametric equation for the segment of 
     the line that pass through $(0,0)$ and $(x_0, y_0)$. It is 
@@ -267,7 +259,7 @@ def position_vector3d(x_0, y_0, z_0, ratio1 = 0.1, ratio2 = 1/3, fig=False, colo
     
     return fig
 
-def vector(x ,y ,u, v, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgrid = True, zeroline=True, lw=3):
+def vector(x, y, u, v, rt1=0.1, rt2=1/3, fig=False, color='black', showgrid=True, zeroline=True, lw=3):
     
     '''
     (x,y): initial point of the vector
@@ -350,7 +342,7 @@ def vector(x ,y ,u, v, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgri
         df = df.append({'x':x_bar, 'y':y_bar}, ignore_index=True)
         df = df.append({'x':None, 'y':None}, ignore_index=True)
     
-    if fig==False:
+    if fig is False:
         fig = go.Figure()
         fig.add_scatter(x = df.x, y=df.y,fill='toself', mode = 'lines', opacity=1,line_color = color, line_width=lw)
         fig.update_layout(yaxis=dict(scaleanchor="x", scaleratio=1),showlegend = False)
@@ -509,7 +501,7 @@ def plot(func, inter1 = None, fig = False, xtitle = 'X', ytitle= 'Y', title=None
     return fig
 
 # Plot a surface using its symbolic equation in the format f(x,y)        
-def plot3d(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title=None, points = 50, opacity = 0.9):
+def plot3d(func, inter1=None, inter2=None, fig=False, xtitle='X', ytitle='Y', ztitle="Z", title=None, points = 50, opacity = 0.9):
     
     '''
     - Arguments:
@@ -899,7 +891,7 @@ def torsion(curve , t=None):
     return (curve.diff().cross(curve.diff(t,2))).dot(curve.diff(t,3))/Norm(curve.diff().cross(curve.diff(t,2)))
 
 #Integral of a parametric curve accepting the boundary condition to determine the constant of integration
-def integral_vector(curve,var, ics=None):
+def integral_curve(curve,var, ics=None):
     """
     ``curve``: a parametric curve with a coordinate system using sp.Coordsys3D
     ``var``: the parameter of the curve
@@ -956,22 +948,34 @@ def line_integral_scalar(field,curve,a):
         `a`:(Tuple) (parameter of the curve, initial point, final point)
         Note: if the field is tridimensional, the curve also must have the same dimension. 
     - Return:
-        line integral of the scalar filed along the curve for the given interval. 
+        line integral of the scalar filed along the curve (a list of curves) for the given interval. 
     
     '''
-    x,y,z = sp.symbols('x y z')
-    R = list(curve.separate().keys())[0]
-    param = [p for p in curve.free_symbols if not p.is_Vector]
-    assert len(param)==1, "A curve has only one parameter"
-    assert param[0]==a[0], "the parameter of the curve must be the same as the integration variable."
-    rx,ry,rz = curve.dot(R.i),curve.dot(R.j),curve.dot(R.k)
+    global x,y,z
     
-    # parametrizing the field using the curve parametric equation
-    parametrized_field = field.subs(x,rx).subs(y,ry).subs(z,rz)
-    module = curve.diff().magnitude().simplify()
+
+    if type(curve) is list or type(curve) is tuple:
+        R = list(curve[0].separate().keys())[0]
+        if len(curve) != len(a):
+            a = len(curve)*a
+    else:
+        R = list(curve.separate().keys())[0]
+        curve = list(curve)
+
+
+    integrand = 0
+    for item in curve:
+        param = [p for p in item.free_symbols if not p.is_Vector]
+        assert len(param)==1, "A curve has only one parameter"
+        assert param[0]==a[0], "the parameter of the curve must be the same as the integration variable."
+        rx,ry,rz = item.dot(R.i),item.dot(R.j),item.dot(R.k)
         
-  
-    integrand = (parametrized_field*module).simplify()
+        # parametrizing the field using the curve parametric equation
+        parametrized_field = field.subs(x,rx).subs(y,ry).subs(z,rz)
+        module = item.diff().magnitude().simplify()
+            
+    
+        integrand += (parametrized_field*module).simplify()
         
     return sp.integrate(integrand,a).evalf()
 
@@ -1186,3 +1190,58 @@ def halley(func, var, x0=0, epochs = 500, tol=1e-5, epsilon = 1e-10):
         x -= x_tmp 
         
     return float(x)
+
+# constructing the parametric equation of a line using two points
+def line(a,b, coordinate=None):
+    """
+    - Arguments:
+        `a`: the inicial point, for example (1,2,3) or (1,2)
+        `b`: the final point, for example (1,2,3) or (1,2)
+        `coordinate`: optional. a coordinate system object of sympy.vector.CoordSys3D 
+    - Return:
+        a sympy.vector object
+    
+    =======
+    Example:
+    line((1,2),(3,4))
+    """
+    t= sp.symbols('t', real=True)
+    if not coordinate:
+        R = sv.CoordSys3D('R')
+    else:
+        R = coordinate
+    assert len(a)==len(b), 'the points must have the same dimension'
+
+    if len(a)==3:
+        x = (b[0] - a[0])*t + a[0]
+        y = (b[1] - a[1])*t + a[1]
+        z = (b[2] - a[2])*t + a[2]
+        return x*R.i + y*R.j + z*R.k
+    elif len(a)==2:
+        x = (b[0] - a[0])*t + a[0]
+        y = (b[1] - a[1])*t + a[1]
+        return x*R.i + y*R.j
+
+# constructing a list of lines that connect a list of points
+def lines(points, coordinate=None):
+    """
+    - Arguments:
+        `points`: a list of points in two or three dimensions
+    - Return:
+        a list of connecting lines of the points
+
+    ==========
+    Example:
+    import sympy as sp
+    import sympy.vector as sv
+    R = sv.CoordSys3D('R')
+    lines([(1,2,3),(4,5,6),(-1,-1,0)], coordinate=R)    """
+
+    assert all([len(i)==len(points[0]) for i in points]), 'all the points must have the same dimension'
+
+    lins=[]
+    i = 0
+    while i<(len(points))-1:
+        lins.append(line(points[i],points[i+1], coordinate=coordinate))
+        i+=1
+    return lins

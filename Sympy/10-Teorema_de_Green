@@ -40,6 +40,7 @@
     "import sympy.vector as sv\n",
     "import av_utils as av\n",
     "x,y,z,t = sp.symbols('x y z t', real=True)\n",
+    "R = sv.CoordSys3D('R')\n",
     "sp.init_printing()"
    ]
   },
@@ -4625,6 +4626,228 @@
    ],
    "source": [
     "av.plot_implicit(eq, (x,-2,2), (y,-2,2))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 34,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def line_integral_scalar(field,curve,a):\n",
+    "    '''\n",
+    "    - Arguments:\n",
+    "        `field`: Scalar field F(x,y,z). \n",
+    "        `curve`: aparametrized curve r(t) = x(t)i + y(t)j + z(t)k\n",
+    "        `a`:(Tuple) (parameter of the curve, initial point, final point)\n",
+    "        Note: if the field is tridimensional, the curve also must have the same dimension. \n",
+    "    - Return:\n",
+    "        line integral of the scalar filed along the curve (a list of curves) for the given interval. \n",
+    "    \n",
+    "    '''\n",
+    "    global x,y,z\n",
+    "    \n",
+    "\n",
+    "    if type(curve) is list or type(curve) is tuple:\n",
+    "        R = list(curve[0].separate().keys())[0]\n",
+    "        if len(curve) != len(a):\n",
+    "            a = len(curve)*a\n",
+    "    else:\n",
+    "        R = list(curve.separate().keys())[0]\n",
+    "        curve = list(curve)\n",
+    "\n",
+    "\n",
+    "    integrand = 0\n",
+    "    for item in curve:\n",
+    "        param = [p for p in item.free_symbols if not p.is_Vector]\n",
+    "        assert len(param)==1, \"A curve has only one parameter\"\n",
+    "        assert param[0]==a[0], \"the parameter of the curve must be the same as the integration variable.\"\n",
+    "        rx,ry,rz = item.dot(R.i),item.dot(R.j),item.dot(R.k)\n",
+    "        \n",
+    "        # parametrizing the field using the curve parametric equation\n",
+    "        parametrized_field = field.subs(x,rx).subs(y,ry).subs(z,rz)\n",
+    "        module = item.diff().magnitude().simplify()\n",
+    "            \n",
+    "    \n",
+    "        integrand += (parametrized_field*module).simplify()\n",
+    "        \n",
+    "    return sp.integrate(integrand,a).evalf()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 35,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def field(x,y,z):\n",
+    "    return z"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 36,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "l = av.lines([(1,2,3), (3,4,5),(5,6,7)])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 37,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "execute_result",
+     "data": {
+      "text/plain": [
+       "145.492267835786"
+      ],
+      "image/png": "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\n",
+      "text/latex": "$\\displaystyle 145.492267835786$"
+     },
+     "metadata": {},
+     "execution_count": 37
+    }
+   ],
+   "source": [
+    "line_integral_scalar(z, curve=l, a=(t,0,3))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 52,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "display_data",
+     "data": {
+      "text/plain": "2⋅t + 3",
+      "image/png": "iVBORw0KGgoAAAANSUhEUgAAADQAAAAQCAYAAABZRVzLAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACUElEQVRIDc2W61ECMRCAD4YC0BK0Awc7wA60Be1Ax1/wVzvQFqQD6cBHB1oC0gF+X0huQjgcdeZOdybsZneT7PvorVarajqdHlRVdcUSRqwF6wr+q4z/BNHWi2jTEKztN/Dn8nqTyUTGHYwTGQL0DeiSdZIU5QvsveSFpexdXlcQ39b45FAFfcr7D6wz6FkfQuNrBWiVzNaSpWIJYxgGwSz+GLh7zDr/8cH1Ac+dc14nEoTMsLmWoUMa+IaSkc9BxSF8jc/BTL7D1+HfgO+Ub333HlvAd+u3SzsGCDX8qBTAS1A+bgBmSdglxkZt3cvfhJeydSd/AOMsV8joI2nkryydsCx1zowZAMvxCXwL/hOIdoWWgb7XCDO0BQh1RsPD5GNvZOZgo2EP1AOEfecQ7TPIxyzL8DkZ0egQQqM/42AZfR3581GOXdoQ7IA2yC/gMOV6fodyQGAtHoC3sgDvDZmOpm9WfnSDjvcYxRL2I2NRCthb3rtaoEF9zeLMB5TtsLeRIQSOxX1wkzOpfx7X13z9yx0bn4KkDd+IGrAy+0llJ+ZM3deFkiVn8Mb9JIgPHYLrCEH7sL0khGizt58CQJcTMInawn7QLa+d7waHUNDzY3BZSkYzlcZG/6AbIt2W5TvuXcK35MU5jOJm7tg2Aw4Bp1iY5ZmmEy2VhrUf/urAM0Jmr+vvURnwChsMrPZcQC/tIXtCp5r+joRJgkzwMv/zBT1wcjQIu/jhzXuWQc4Dr+31f86tKde2YRgTShXcSkD6bTvQcL/1X/ZAg9rvWJ80I+CkSdnXRAAAAABJRU5ErkJggg==\n",
+      "text/latex": "$\\displaystyle 2 t + 3$"
+     },
+     "metadata": {}
+    },
+    {
+     "output_type": "display_data",
+     "data": {
+      "text/plain": "2⋅t + 5",
+      "image/png": "iVBORw0KGgoAAAANSUhEUgAAADQAAAARCAYAAACSGY9uAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACXUlEQVRIDdWWO3ITQRBAZaMDCHMCyymRgFyBfANMRgo3wKGUUfYNrJAQHDqzqFLiiCplhPgIoIxQvNfsbK1Gi7ym7MV0Vatnerqnv9Pazmq16vxPOB6PB7m/8HpgX363A0wmkz7k2DXwHPwOHsNfyHhg8Bm/eviUfHMtPPPnEWgwZwi9Gg6HF+B0Pp8/hfcBesX+mnUJXgb/K6jsj/KgpQV232BqB9wHf4Ln4Gv8WkKjQifQt24ScGh1VPwEPk78go6gJsEq3hq4N/Sh01sr/1ZYoHv0J91dDjTwDaFUuiQ7Y9GDr/NVOGRzDT8yUj1ouNZObquh6s1iBqTj2xzMjZsAy/wgobulfAM95twSG4RtaXBWbADPdvwCPYW2Ctj0OejLE1B/3sOLIdFlswEcGoyCMfnYW8UZ9CV0BLXt/hUYyEd8WOoAVD99MofgbFdmDZj9cwTy7BtIGpc1avfPKhyPYLTG3ilsws/cb1QIAQ98U3WTpPH7Ke5RPoc9GZyvTdZCaOsEyy+q7A1qxJ39tYBg2Jt70I2WgmepLe8leCMgX+dwB75t24fm1W9yp7b1L/5EaxR6ZcsVhg6gZWVYa9gghMg2e8sbwNog2wS/YupspqovIiAccwi8gKbPn+Sk2Ux/oGvvB9nIdBJsiU6xe1Bjy2RHorsIWAGHgFMsHlZFwb5MrWEW4jMIXrQftO3/Iz/RxLKdWb8r/I3O8g3Zlwbl+8mhOtGsnpeFHDQFmuvc2x6bDqsTMCXeJNtB+/CWGt7xk7tNwPBfD4UmfsYbaiJ4hzJmMrJ5h3eWV/0CbKlvwSpiNQIAAAAASUVORK5CYII=\n",
+      "text/latex": "$\\displaystyle 2 t + 5$"
+     },
+     "metadata": {}
+    },
+    {
+     "output_type": "execute_result",
+     "data": {
+      "text/plain": [
+       "145.492267835786"
+      ],
+      "image/png": "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\n",
+      "text/latex": "$\\displaystyle 145.492267835786$"
+     },
+     "metadata": {},
+     "execution_count": 52
+    }
+   ],
+   "source": [
+    "line_integral_scalar(field=field(x,y,z), curve=l[:1], a=(t,0,3)) + line_integral_scalar(field=field(x,y,z), curve=l[1:], a=(t,0,3))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "f,g = {1,2}"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 43,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "[1, 2, 3] 3\n[6, 7, 8] 4\n"
+     ]
+    }
+   ],
+   "source": [
+    "a = [[1,2,3], [6,7,8]]\n",
+    "b = [3,4]\n",
+    "\n",
+    "for i,j in zip(a,b):\n",
+    "    print(i,j)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 44,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "execute_result",
+     "data": {
+      "text/plain": [
+       "[[1, 2, 3], [6, 7, 8], [1, 2, 3], [6, 7, 8], [1, 2, 3], [6, 7, 8]]"
+      ],
+      "image/png": "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\n",
+      "text/latex": "$\\displaystyle \\left[ \\left[ 1, \\  2, \\  3\\right], \\  \\left[ 6, \\  7, \\  8\\right], \\  \\left[ 1, \\  2, \\  3\\right], \\  \\left[ 6, \\  7, \\  8\\right], \\  \\left[ 1, \\  2, \\  3\\right], \\  \\left[ 6, \\  7, \\  8\\right]\\right]$"
+     },
+     "metadata": {},
+     "execution_count": 44
+    }
+   ],
+   "source": [
+    "3*a"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "execute_result",
+     "data": {
+      "text/plain": [
+       "2"
+      ],
+      "image/png": "iVBORw0KGgoAAAANSUhEUgAAAAkAAAAOCAYAAAD9lDaoAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAA3UlEQVQoFW2RvRGCQBCFD7UAxhIgNXI0J8AO1BK0BEJItQMMTTU0w4DE1A6gBMYOzu+dg4PIzrzZ27dvf+7Os9aaLMsCY0wCZAvQgAT+KWIMJMghtlEU3cCpLMsZ3Bn/IK5HBAewB1+jQF1f4CJSohhUJHwRHbtz9uEDiRTUBKocMt9o8SGkaVoBUtaN+6um6xxSF3I31rgh08JXxEeX7I9iRA6KLv/TicodlVP8qtt+0gYk1pxD/KbDaa/P4iS06BLffk2rU2HjMV/qAui9+hZTGGqcBBJqn765D34Dzrdx4/BA7EwAAAAASUVORK5CYII=\n",
+      "text/latex": "$\\displaystyle 2$"
+     },
+     "metadata": {},
+     "execution_count": 45
+    }
+   ],
+   "source": [
+    "len(a)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 46,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "error",
+     "ename": "NameError",
+     "evalue": "name 'size' is not defined",
+     "traceback": [
+      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+      "\u001b[0;31mNameError\u001b[0m                                 Traceback (most recent call last)",
+      "\u001b[0;32m<ipython-input-46-9338c2ed236c>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[0;32m----> 1\u001b[0;31m \u001b[0msize\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0ma\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m",
+      "\u001b[0;31mNameError\u001b[0m: name 'size' is not defined"
+     ]
+    }
+   ],
+   "source": [
+    "size(a)"
    ]
   },
   {
