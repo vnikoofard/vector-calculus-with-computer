@@ -56,6 +56,73 @@ def plot_curve3d(x, y, z, fig=False, xtitle='X', ytitle='Y', title='3D Plot', as
     return fig
 
 
+# plot a 2D implicit function like a circle or an ellipse.
+def plot_implicit(func, inter1=None, inter2=None, fig=False, xtitle='X',
+                  ytitle='Y', title=None, points=50, colorscale = 'Blues'):
+    '''
+    - Argument:
+        `func`: must be a function like g(y)+f(x)=0 (just the left handside) or as a sp.Eq() object
+        `inter1`: (variable1, start, end)
+        `inter2`: (variable2, start, end)
+    -Return:
+        a Plotly graph object
+
+    ========
+    Example:
+    import sympy as sp
+    x,y = sp.symbols('x y')
+    eq = sp.Eq(x**2/2,-y**2/2+1)
+    plot_implicit(x**2+y**2-1, (x,-2,2), (y,-2,2))
+    '''
+    if title is None:
+        title = str(func)
+
+    if not isinstance(func, sp.Expr):
+        func = sp.sympify(str(func))
+
+    if func.is_Equality:
+        func = func.lhs - func.rhs
+    
+    vars = list(sp.ordered(func.free_symbols))
+    assert len(vars) == 2, 'The function must have at most one variable'
+
+    if inter1 is None:
+        inter1 = (vars[0], -5, 5)
+    if inter2 is None:
+        inter2 = (vars[1], -5, 5)
+        
+    
+        
+    #assert func.free_symbols == set([inter1[0], inter2[0]]), "The variables of the function aren't the same as the declared in the intervals"
+    
+    func_np = sp.lambdify([inter1[0],inter2[0]], func)
+    
+    xx = np.linspace(inter1[1],inter1[2], points)
+    yy = np.linspace(inter2[1],inter2[2], points)
+    X, Y = np.meshgrid(xx,yy)
+    Z = func_np(X,Y)
+    
+    
+       
+    if fig is False:
+        fig = go.Figure()
+        fig.add_contour(x=xx, y=yy, z=Z, showlegend=False, name=str(func),contours_coloring='lines',
+        line_width = 2, colorscale=colorscale,
+        contours=dict(start=0, end=0, size=2))
+        fig.update_layout(title=title, xaxis_title=xtitle,
+                          yaxis_title= ytitle,
+                          yaxis=dict(scaleanchor="x", scaleratio=1))
+    
+    else:
+        fig.add_contour(x=xx, y=yy, z=Z, showlegend=False, name=str(func),contours_coloring='lines',
+        line_width = 2, colorscale=colorscale,
+        contours=dict(start=0, end=0, size=2))
+        fig.update_layout(title=title, xaxis_title=xtitle,
+                          yaxis_title= ytitle,
+                          yaxis=dict(scaleanchor="x", scaleratio=1))
+
+    return fig
+
 # Plot a parametric curve in 3D
 def plot3d_parametric_curve(func, inter1=None, fig=False, xtitle='X', ytitle='Y', 
                             title='3D Curve Plot', points=50,
@@ -94,25 +161,22 @@ def plot3d_parametric_curve(func, inter1=None, fig=False, xtitle='X', ytitle='Y'
     yy_np = sp.lambdify(inter1[0], func[1])
     zz_np = sp.lambdify(inter1[0], func[2])
     
-    
-    
     var1 = np.linspace(inter1[1],inter1[2],points)
     xx, yy, zz = xx_np(var1), yy_np(var1), zz_np(var1)
     
-    
     l = [xx, yy, zz]
     for item in range(len(l)):
-        if type(item)!= np.ndarray:
+        if type(item) != np.ndarray:
             l[item] *= np.ones(var1.shape)
             
     xx, yy, zz = l[0], l[1], l[2]
           
     if fig is False:
         
-        return plot_curve3d(x=xx , y = yy, z = zz, xtitle = xtitle, ytitle= ytitle, title=title,aspectmode = aspectmode)
+        return plot_curve3d(x=xx, y=yy, z=zz, xtitle=xtitle, ytitle=ytitle, title=title,aspectmode=aspectmode)
         
     else:
-        return plot_curve3d(x = xx , y = yy, z = zz, fig = fig, xtitle = xtitle, ytitle= ytitle, title=title, aspectmode=aspectmode)
+        return plot_curve3d(x=xx, y=yy, z=zz, fig=fig, xtitle=xtitle, ytitle=ytitle, title=title, aspectmode=aspectmode)
         
 
 
@@ -159,7 +223,7 @@ def position_vector(x_0,y_0, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', s
     
     s_bar = length2/(2*l)
     
-    if fig==False:
+    if fig is False:
         fig = go.Figure()
     
         fig.add_scatter(x = [x_0,y_0*s_bar+x_bar, -y_0*s_bar+x_bar,x_0],
@@ -178,7 +242,8 @@ def position_vector(x_0,y_0, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', s
         fig.update_layout(yaxis=dict(scaleanchor="x", scaleratio=1),showlegend = False)
         fig.update_xaxes(showgrid=showgrid, zeroline=zeroline)
         fig.update_yaxes(showgrid=showgrid, zeroline=zeroline)
-return fig
+
+    return fig
 
         
 def position_vector3d(x_0, y_0, z_0, ratio1 = 0.1, ratio2 = 1/3, fig=False, color = 'black', lw=2):
@@ -394,10 +459,11 @@ def vector3d(x_0, y_0, z_0, x_1, y_1, z_1, ratio1 = 0.1, ratio2 = 1/3, fig=False
         fig.update_layout(showlegend = False)
         fig.update_xaxes(showgrid=False, zeroline=False)
         fig.update_yaxes(showgrid=False, zeroline=False)
+
     return fig
 
 #Plot a curve using its symbolic equation in the format f(x)
-def plot(func, inter1 = None, fig = False, xtitle = 'X', ytitle= 'Y', title=None, points = 50, opacity = 1):
+def plot(func, inter1 = None, fig = False, xtitle = 'X', ytitle= 'Y', title=None, points = 50):
     
     '''
     - Argument:
@@ -406,6 +472,8 @@ def plot(func, inter1 = None, fig = False, xtitle = 'X', ytitle= 'Y', title=None
     -Return:
         a Plotly graph object
     '''
+    if not isinstance(func, sp.Expr):
+        func = sp.sympify(str(func))
     
     var = list(sp.ordered(func.free_symbols))
     assert len(var)==1, 'The function must have at most one variable'
@@ -415,8 +483,7 @@ def plot(func, inter1 = None, fig = False, xtitle = 'X', ytitle= 'Y', title=None
     if title is None:
         title = str(func)
     
-    if not isinstance(func, sp.Expr):
-        func = sp.sympify(str(func))
+    
     assert func.free_symbols ==set([inter1[0]]), "The variable of the function isn't the same as the declared in the interval"
     
     func_np = sp.lambdify(inter1[0], func)
@@ -430,12 +497,14 @@ def plot(func, inter1 = None, fig = False, xtitle = 'X', ytitle= 'Y', title=None
         fig = go.Figure()
         fig.add_scatter(x=xx, y=yy, showlegend=False, mode='lines', name= str(func))
         fig.update_layout(title=title, xaxis_title=xtitle,
-                          yaxis_title= ytitle)
+                          yaxis_title= ytitle,
+                          yaxis=dict(scaleanchor="x", scaleratio=1))
     
     else:
         fig.add_scatter(x=xx, y=yy, showlegend=False, mode='lines', name= str(func))
         fig.update_layout(title=title, xaxis_title=xtitle,
-                          yaxis_title= ytitle)
+                          yaxis_title= ytitle,
+                          yaxis=dict(scaleanchor="x", scaleratio=1))
 
     return fig
 
@@ -450,7 +519,9 @@ def plot3d(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle
     - Return:
         a plotly graph object
     '''
-    
+    if not isinstance(func, sp.Expr):
+        func = sp.sympify(str(func))
+
     vars = list(sp.ordered(func.free_symbols))
     assert len(vars)==2, 'The function must have at most two variables'
     if inter1 is None:
@@ -461,8 +532,7 @@ def plot3d(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle
     if title is None:
         title = str(func)
     
-    if not isinstance(func, sp.Expr):
-        func = sp.sympify(str(func))
+    
     assert func.free_symbols ==set([inter1[0],inter2[0]]), "The variables of the function aren't the same as the declared in the intervals"
     
     func_np = sp.lambdify([inter1[0],inter2[0]], func)
@@ -644,8 +714,6 @@ def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None,
 
     return fig
 
-        
-        
         
 # plotting a 3D vector field
 def plot3d_vector_field(func, inter1=None, inter2=None, inter3 = None, fig = None, points=15, sizemode=None, sizeref=1):
