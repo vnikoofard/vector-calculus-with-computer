@@ -8,22 +8,23 @@ import sympy.vector as sv
 import plotly.figure_factory as ff
 
 
-# 2D curve plot
+# 2D curve plot. A wrapper for plotly scatter plot
 def plot_curve(x, y, fig=False, xtitle='X', ytitle='Y', title='2D Plot', lw=5):    
     if fig is False:
         fig = go.Figure()
         fig.add_scatter(x=x, y=y, showlegend=False, mode='lines', line_width=lw)
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title=ytitle, yaxis=dict(scaleanchor="x", scaleratio=1))
-        fig.show()    
     else:
         fig.add_scatter(x=x, y=y, showlegend=False, mode ='lines', line_width=lw)
         fig.update_layout(title=title, xaxis_title=xtitle,
-                          yaxis_title=ytitle, yaxis=dict(scaleanchor="x", scaleratio=1))         
+                          yaxis_title=ytitle, yaxis=dict(scaleanchor="x", scaleratio=1))   
+
+    return fig      
 
 
 # 3D curve plot
-def plot_curve3d(x , y , z, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Plot', aspectmode='data', lw =5):
+def plot_curve3d(x, y, z, fig=False, xtitle='X', ytitle='Y', title='3D Plot', aspectmode='data', lw =5):
     
     if fig is False:
         fig = go.Figure()
@@ -38,7 +39,6 @@ def plot_curve3d(x , y , z, fig = False, xtitle = 'X', ytitle= 'Y', title='3D Pl
            #a custom aspectratio is defined as follows:
            aspectratio=dict(x=1, y=1, z=0.95)
            ))
-        fig.show()
     
     else:
         fig.add_scatter3d(x=x, y=y, z=z, showlegend=False, mode='lines', 
@@ -170,7 +170,6 @@ def position_vector(x_0,y_0, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', s
         fig.update_xaxes(showgrid=showgrid, zeroline=zeroline)
         fig.update_yaxes(showgrid=showgrid, zeroline=zeroline)
         #fig.update_scatter(dict(opacity=1))
-        fig.show()
     else:
         fig.add_scatter(x = [x_0,y_0*s_bar+x_bar, -y_0*s_bar+x_bar,x_0],
                     y=[y_0, -x_0*s_bar +y_bar,x_0*s_bar+y_bar, y_0],
@@ -179,19 +178,19 @@ def position_vector(x_0,y_0, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', s
         fig.update_layout(yaxis=dict(scaleanchor="x", scaleratio=1),showlegend = False)
         fig.update_xaxes(showgrid=showgrid, zeroline=zeroline)
         fig.update_yaxes(showgrid=showgrid, zeroline=zeroline)
-        #fig.show()
+return fig
 
         
 def position_vector3d(x_0, y_0, z_0, ratio1 = 0.1, ratio2 = 1/3, fig=False, color = 'black', lw=2):
     
-    if fig == False:
+    if fig is False:
         fig = go.Figure()
         fig.add_scatter3d(x = [0,0.95*x_0],y=[0,0.95*y_0],z=[0,0.95*z_0], mode = 'lines'
                           , line_width=lw,line_color = 'royalblue')
         fig.add_cone(x=[x_0],y=[y_0],z=[z_0],u=[x_0],v=[y_0],w=[z_0], anchor = 'tip',
                      showscale= False, sizeref = 0.1 ,colorscale=[[0, color], [1,color]])
         fig.update_layout(showlegend = False)
-        fig.show()
+
     else:
         fig.add_scatter3d(x = [0,0.95*x_0],y=[0,0.95*y_0],z=[0,0.95*z_0], mode = 'lines'
                           , line_width=lw,line_color = 'royalblue')
@@ -200,6 +199,8 @@ def position_vector3d(x_0, y_0, z_0, ratio1 = 0.1, ratio2 = 1/3, fig=False, colo
         fig.update_layout(showlegend = False)
         fig.update_xaxes(showgrid=False, zeroline=False)
         fig.update_yaxes(showgrid=False, zeroline=False)
+    
+    return fig
 
 def vector(x ,y ,u, v, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgrid = True, zeroline=True, lw=3):
     
@@ -290,12 +291,14 @@ def vector(x ,y ,u, v, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgri
         fig.update_layout(yaxis=dict(scaleanchor="x", scaleratio=1),showlegend = False)
         fig.update_xaxes(showgrid=showgrid, zeroline=zeroline)
         fig.update_yaxes(showgrid=showgrid, zeroline=zeroline)
-        fig.show()
+
     else:
         fig.add_scatter(x = df.x, y=df.y,fill='toself', mode = 'lines', opacity=1,line_color = color, line_width=lw)
         fig.update_layout(yaxis=dict(scaleanchor="x", scaleratio=1),showlegend = False)
         fig.update_xaxes(showgrid=showgrid, zeroline=zeroline)
-        fig.update_yaxes(showgrid=showgrid, zeroline=zeroline)        
+        fig.update_yaxes(showgrid=showgrid, zeroline=zeroline)   
+
+    return fig     
 
 # it is an old version of `vector` method. This old version needs a loop to plot multiple vectors
 def plot_vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgrid = True, zeroline=True, lw=3):
@@ -350,7 +353,7 @@ def plot_vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black
     
     s_bar = length2/(2*l)
     
-    if fig==False:
+    if fig is False:
         fig = go.Figure()
     
         fig.add_scatter(x = [x_1,b*s_bar+x_bar, -b*s_bar+x_bar,x_1],
@@ -361,7 +364,6 @@ def plot_vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black
         fig.update_xaxes(showgrid=showgrid, zeroline=zeroline)
         fig.update_yaxes(showgrid=showgrid, zeroline=zeroline)
         #fig.update_scatter(dict(opacity=1))
-        fig.show()
     else:
         fig.add_scatter(x = [x_1,b*s_bar+x_bar, -b*s_bar+x_bar,x_1],
                     y=[y_1, -a*s_bar +y_bar,a*s_bar+y_bar, y_1],
@@ -370,19 +372,20 @@ def plot_vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black
         fig.update_layout(yaxis=dict(scaleanchor="x", scaleratio=1),showlegend = False)
         fig.update_xaxes(showgrid=showgrid, zeroline=zeroline)
         fig.update_yaxes(showgrid=showgrid, zeroline=zeroline)
-        #fig.show()
+        
+    return fig
     
     
 def vector3d(x_0, y_0, z_0, x_1, y_1, z_1, ratio1 = 0.1, ratio2 = 1/3, fig=False, color = 'royalblue', lw = 6):
     
-    if fig == False:
+    if fig is False:
         fig = go.Figure()
         fig.add_scatter3d(x = [x_0,0.95*x_1],y=[y_0,0.95*y_1],z=[z_0,0.95*z_1], mode = 'lines'
                           , line_width=lw,line_color = 'royalblue')
         fig.add_cone(x=[x_1],y=[y_1],z=[z_1],u=[x_1 - x_0],v=[y_1 - y_0],w=[z_1 - z_0], anchor = 'tip',
                      showscale= False, sizeref = 0.1 ,colorscale=[[0, color], [1,color]])
         fig.update_layout(showlegend = False)
-        fig.show()
+
     else:
         fig.add_scatter3d(x = [x_0,0.95*x_1],y=[y_0,0.95*y_1],z=[z_0,0.95*z_1], mode = 'lines'
                           , line_width=lw,line_color = 'royalblue')
@@ -391,21 +394,73 @@ def vector3d(x_0, y_0, z_0, x_1, y_1, z_1, ratio1 = 0.1, ratio2 = 1/3, fig=False
         fig.update_layout(showlegend = False)
         fig.update_xaxes(showgrid=False, zeroline=False)
         fig.update_yaxes(showgrid=False, zeroline=False)
+    return fig
+
+#Plot a curve using its symbolic equation in the format f(x)
+def plot(func, inter1 = None, fig = False, xtitle = 'X', ytitle= 'Y', title=None, points = 50, opacity = 1):
+    
+    '''
+    - Argument:
+        `func`: must be a function like y=f(x)
+        `inter1`: (variable1, start, end)
+    -Return:
+        a Plotly graph object
+    '''
+    
+    var = list(sp.ordered(func.free_symbols))
+    assert len(var)==1, 'The function must have at most one variable'
+    if inter1 is None:
+        inter1 = (var[0], -5,5)
         
-def plot3d(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title='3D Surface Plot', points = 50, opacity = 1):
+    if title is None:
+        title = str(func)
+    
+    if not isinstance(func, sp.Expr):
+        func = sp.sympify(str(func))
+    assert func.free_symbols ==set([inter1[0]]), "The variable of the function isn't the same as the declared in the interval"
+    
+    func_np = sp.lambdify(inter1[0], func)
+    
+    xx = np.linspace(inter1[1],inter1[2], points)
+    yy = func_np(xx)
+    
+    
+       
+    if fig is False:
+        fig = go.Figure()
+        fig.add_scatter(x=xx, y=yy, showlegend=False, mode='lines', name= str(func))
+        fig.update_layout(title=title, xaxis_title=xtitle,
+                          yaxis_title= ytitle)
+    
+    else:
+        fig.add_scatter(x=xx, y=yy, showlegend=False, mode='lines', name= str(func))
+        fig.update_layout(title=title, xaxis_title=xtitle,
+                          yaxis_title= ytitle)
+
+    return fig
+
+# Plot a surface using its symbolic equation in the format f(x,y)        
+def plot3d(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title=None, points = 50, opacity = 0.9):
     
     '''
-    func: must be function with two variables
-    inter1: (variable1, start, end)
-    inter2: (variable2, start, end)
+    - Arguments:
+        `func`: must be function with two variables
+        `inter1`: (variable1, start, end)
+        `inter2`: (variable2, start, end)
+    - Return:
+        a plotly graph object
     '''
     
-    if inter1 ==None:
-        print("Please input the interval for the first variable in the format (variable, begin, end)")
-    if inter2 ==None:
-        print("Please input the interval for the second variable in the format (variable, begin, end)")
+    vars = list(sp.ordered(func.free_symbols))
+    assert len(vars)==2, 'The function must have at most two variables'
+    if inter1 is None:
+        inter1 = (vars[0], -5,5)
+    if inter2 is None:
+        inter2 = (vars[1], -5,5)
+        
+    if title is None:
+        title = str(func)
     
-    import sympy as sp
     if not isinstance(func, sp.Expr):
         func = sp.sympify(str(func))
     assert func.free_symbols ==set([inter1[0],inter2[0]]), "The variables of the function aren't the same as the declared in the intervals"
@@ -418,21 +473,18 @@ def plot3d(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle
     
     
        
-    if fig == False:
+    if fig is False:
         fig = go.Figure()
-        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
+        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False,name= str(func), opacity=opacity)
         fig.update_layout(title=title, xaxis_title=xtitle,
-                          yaxis_title= ytitle, scene_aspectmode='cube',
-                         opacity = opacity)
-        fig.show()
+                          yaxis_title= ytitle, scene_aspectmode='cube')
     
     else:
-        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
+        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False,name= str(func), opacity=opacity)
         fig.update_layout(title=title, xaxis_title=xtitle,
-                          yaxis_title= ytitle, scene_aspectmode='cube',
-                         opacity = opacity)
+                          yaxis_title= ytitle, scene_aspectmode='cube')
 
-
+    return fig
     
 # Parametric plot 3D
 
@@ -444,9 +496,9 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
     inter2: (parameter, start, end)
     '''
     
-    if inter1 ==None:
+    if inter1 is None:
         print("Please input the interval for the first parameter in the format (parameter, begin, end)")
-    if inter2 ==None:
+    if inter2 is None:
         print("Please input the interval for the second parameter in the format (parameter, begin, end)")
     
     import sympy as sp
@@ -472,17 +524,18 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
     xx, yy, zz = xx_np(uGrid,vGrid), yy_np(uGrid,vGrid), zz_np(uGrid,vGrid)
     
           
-    if fig == False:
+    if fig is False:
         fig = go.Figure()
         fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title= ytitle, scene_aspectmode='cube')
-        fig.show()
     
     else:
         fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title= ytitle, scene_aspectmode='cube')
+    
+    return fig
 
 # Density function (or Scalar field) plot
         
@@ -494,9 +547,9 @@ def plot_density_function(func, inter1 = None, inter2 = None, fig = False, xtitl
     inter2: (variable2, start, end)
     '''
     
-    if inter1 ==None:
+    if inter1 is None:
         print("Please input the interval for the first variable in the format (variable, begin, end)")
-    if inter2 ==None:
+    if inter2 is None:
         print("Please input the interval for the second variable in the format (variable, begin, end)")
     
     import sympy as sp
@@ -513,7 +566,7 @@ def plot_density_function(func, inter1 = None, inter2 = None, fig = False, xtitl
     
     x ,y = np.linspace(inter1[1],inter2[2],points), np.linspace(inter1[1],inter2[2],points)   
     
-    if fig == False:
+    if fig is False:
         fig = go.Figure()
         fig.add_heatmap(x = x , y = y, z = zz, connectgaps=True, zsmooth='best')
         fig.update_layout(title=title, xaxis_title=xtitle,
@@ -521,7 +574,6 @@ def plot_density_function(func, inter1 = None, inter2 = None, fig = False, xtitl
                           yaxis=dict(scaleanchor="x", scaleratio=1), 
                           width = (inter1[2]-inter1[1])*50, height = (inter2[2]-inter2[1])*50)
         
-        fig.show()
     
     else:
         fig.add_heatmap(x = x , y = y, z = zz, connectgaps=True, zsmooth='best')
@@ -529,6 +581,8 @@ def plot_density_function(func, inter1 = None, inter2 = None, fig = False, xtitl
                           yaxis_title= ytitle,
                           yaxis=dict(scaleanchor="x", scaleratio=1),
                          width = (inter1[2]-inter1[1])*50, height = (inter2[2]-inter2[1])*50)
+    
+    return fig
         
 #3D Density Function (or Scalar Field) plot
         
@@ -543,11 +597,11 @@ def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None,
     inter3: (variable2, start, end)
     '''
     
-    if inter1 ==None:
+    if inter1 is None:
         print("Please input the interval for the first variable in the format (variable, begin, end)")
-    if inter2 ==None:
+    if inter2 is None:
         print("Please input the interval for the second variable in the format (variable, begin, end)")
-    if inter3 ==None:
+    if inter3 is None:
         print("Please input the interval for the third variable in the format (variable, begin, end)")
     
     
@@ -564,7 +618,7 @@ def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None,
     
     #x ,y = np.linspace(inter1[1],inter2[2],points), np.linspace(inter1[1],inter2[2],points)   
     
-    if fig == False:
+    if fig is False:
         fig = go.Figure()
         fig.add_isosurface(x = xx.flatten(), y = yy.flatten(), z = zz.flatten(),value=values.flatten(),
         isomin=isomin,
@@ -576,7 +630,6 @@ def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None,
                           )
         fig.update_layout(title=title, xaxis_title=xtitle, yaxis_title= ytitle)
         
-        fig.show()
     
     else:
         fig.add_isosurface(x = xx.flatten(), y = yy.flatten(), z = zz.flatten(),value=values.flatten(),
@@ -588,6 +641,8 @@ def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None,
                           colorbar_nticks=8 # colorbar ticks correspond to isosurface values
                           )
         fig.update_layout(title=title, xaxis_title=xtitle, yaxis_title= ytitle)
+
+    return fig
 
         
         
@@ -987,8 +1042,11 @@ def divergente(func, point=None, coordinate=None):
 # finding the minimum of an univariate function using gradient descent
 def minimum(func, a, alpha=0.01, epochs=100, precision=0.0001):
     '''
-    func: uma função no formato de Sympy
-    a: um tuple (varivel da função, inicio, fim)
+    - Arguments:
+        `func`: uma função no formato de Sympy
+        `a`: um tuple (varivel da função, inicio, fim)
+    - Return:
+        the value of the variable where the function has its minimum inside the interval.
     '''
     #fining the derivative of the func
     derivative = func.diff()
@@ -1023,3 +1081,40 @@ def minimum(func, a, alpha=0.01, epochs=100, precision=0.0001):
 
     return local_min #,grads
 
+def halley(func, var, x0=0, epochs = 500, tol=1e-5, epsilon = 1e-10):
+    """
+    - Argumentos:
+    `func`: o lado esquerdo da equação f(x)=0
+    `var`: a variavel da função acima como uma variavel do Sympy
+    `x0`: o chute inicial para iniciar a busca
+    `epochs`: o numero da iterações para se aproximar a resposta
+    `tol` a tolerancia para aproximação da resposta
+    `epsilon`: zero numerico. 
+    - Return:
+    `x`: uma das raizes da função.
+    """
+    df = func.diff(var)
+    ddf = df.diff(var)
+    
+    f_numpy = sp.lambdify(var,func,'numpy')
+    df_numpy = sp.lambdify(var,df, 'numpy')
+    ddf_numpy = sp.lambdify(var,ddf, 'numpy')
+    
+    x = x0
+    for i in range(epochs):
+        nom = 2*f_numpy(x)*df_numpy(x)
+        denom = 2*df_numpy(x)**2 - f_numpy(x)*ddf_numpy(x)
+        if abs(denom) < epsilon:
+            x = False
+            #it's better to raise an Exception than returning False 
+            raise Exception('Divisão por zero')
+            #return x
+        
+        x_tmp = nom/denom
+        
+        if abs(x_tmp)<tol:
+            return x
+        
+        x -= x_tmp 
+        
+    return float(x)
