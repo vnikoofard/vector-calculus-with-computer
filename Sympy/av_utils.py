@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import sympy.vector as sv
 import plotly.figure_factory as ff
+from collections.abc import Iterable
 
 
 # 2D curve plot. A wrapper for plotly scatter plot
@@ -944,30 +945,41 @@ def line_integral_scalar(field,curve,a):
     '''
     - Arguments:
         `field`: Scalar field F(x,y,z). 
-        `curve`: aparametrized curve r(t) = x(t)i + y(t)j + z(t)k
-        `a`:(Tuple) (parameter of the curve, initial point, final point)
+        `curve`: one or a list of parametrized curve r(t) = x(t)i + y(t)j + z(t)k
+        `a`: a tuple or a list of tuples each one as (parameter of the curve, initial point, final point
         Note: if the field is tridimensional, the curve also must have the same dimension. 
     - Return:
-        line integral of the scalar filed along the curve (a list of curves) for the given interval. 
-    
+        line integral of the scalar filed along the curve(s) for the given interval(s). 
+
+    ===================
+    Example:
+        import sympy as sp
+        import av_utils as av
+        x,y,z = sp.symbols('x y z')
+        def field(x,y,z):
+            return z**2 +x +y
+        l = av.lines([(1,2,3), (3,4,5),(5,6,7)])
+        av.line_integral_scalar(z, curve=l, a=(t,0,3)) # one interval for all curves
+        av.line_integral_scalar(z, curve=l, a=((t,0,3),(t,0,1))) #one interval for each curve
     '''
     global x,y,z
     
 
-    if type(curve) is list or type(curve) is tuple:
+    if isinstance(curve, Iterable):
         R = list(curve[0].separate().keys())[0]
-        if len(curve) != len(a):
-            a = len(curve)*a
+        if not isinstance(a[0], Iterable):
+            a = len(curve)*(a,)
     else:
         R = list(curve.separate().keys())[0]
-        curve = list(curve)
+        curve = [curve]
+        a = [a]
 
 
-    integrand = 0
-    for item in curve:
+    integral = 0
+    for item,var in zip(curve,a):
         param = [p for p in item.free_symbols if not p.is_Vector]
         assert len(param)==1, "A curve has only one parameter"
-        assert param[0]==a[0], "the parameter of the curve must be the same as the integration variable."
+        assert param[0]==var[0], "the parameter of the curve must be the same as the integration variable."
         rx,ry,rz = item.dot(R.i),item.dot(R.j),item.dot(R.k)
         
         # parametrizing the field using the curve parametric equation
@@ -975,61 +987,76 @@ def line_integral_scalar(field,curve,a):
         module = item.diff().magnitude().simplify()
             
     
-        integrand += (parametrized_field*module).simplify()
+        integrand = (parametrized_field*module).simplify()
+        integral += sp.integrate(integrand,var).evalf()
         
-    return sp.integrate(integrand,a).evalf()
-
+    return integral
 
 #Line integral for a vectorial field
 def line_integral_vectorial(field,curve,a):
     '''
     - Arguments:
         `field`: Vector field F(x,y,z) = P(x,y,z)i + R(x,y,z)j + Q(x,y,z)k. The parameters of the field must be `x`,`y` and `z`
-        `curve`: parametrized curve r(t) = x(t)i + y(t)j + z(t)k
-        `a`:(Tuple) (parameter of the curve, initial point, final point)
+        `curve`: one or a list of parametrized curves as r(t) = x(t)i + y(t)j + z(t)k
+        `a`: one or a list of tuples each one as (parameter of the curve, initial point, final point)
         **Note**: the dimensionality of curve and field must be the same. 
     - Return:
-        line integral of the vectorial filed along the curve for the given interval. 
+        line integral of the vectorial filed along the curve(s) for the given interval(s). 
 
 
     Example:
     =====
     import sympy as sp
     import sympy.vector as sv
+    import av_utils as av
     R = sv.CoordSys3D('R')
     t,x,y,z = sp.symbols('t x y z')
     def f(x,y,z):
         x*R.i + y*z*R.j + x*z*R.k
-    def r(t):
-        return 2*t*R.i + t**2*R.j - R.k
+
+    l = av.lines([(1,2,3), (3,4,5),(5,6,7)])
     
-    line_integral_vectorial(f(x,y,z), r(t), (t,-1,2))
+    av.line_integral_vectorial(f(x,y,z), l, (t,-1,2)) # one interval for all curves
+    av.line_integral_vectorial(f(x,y,z), l, ((t,-1,2),(t,0,2))) # one interval for each curve
     
     '''
 
+    global x,y,z
+
+    if isinstance(curve, Iterable):
+        R = list(curve[0].separate().keys())[0]
+        if not isinstance(a[0], Iterable):
+            a = len(curve)*(a,)
+    else:
+        R = list(curve.separate().keys())[0]
+        curve = [curve]
+        a = [a]
+    
     #taking the name of the coordinate system. Here we assume that the filed and curve are using the same coordinate system
-    x,y,z = sp.symbols('x y z')
-    R = list(curve.separate().keys())[0]
+    R = list(curve[0].separate().keys())[0]
     R_f = list(field.separate().keys())[0]
+    assert R==R_f, 'the given filed and curve(s) must be in a same coordinate system'
+    
+    integral = 0
+    for item,var in zip(curve,a):
+    
+        x_c = item.dot(R.i)
+        y_c = item.dot(R.j)
+        z_c = item.dot(R.k)
+        
+        param = [p for p in item.free_symbols if not p.is_Vector]
+        assert len(param)==1, "A curve has only one parameter"
+        assert param[0]==var[0], "the parameter of the curve must be the same as the integration variable."
 
-    assert R==R_f, 'the given filed and curve must be in a same coordinate system'
-    
-    x_c  = curve.dot(R.i)
-    y_c  = curve.dot(R.j)
-    z_c  = curve.dot(R.k)
-    
-    param = [p for p in curve.free_symbols if not p.is_Vector]
-    assert len(param)==1, "A curve has only one parameter"
-    assert param[0]==a[0], "the parameter of the curve must be the same as the integration variable."
-
-    # parametrizing the field using the curve equation
-    parametrized_field =field.subs(x, x_c).subs(y, y_c).subs(z, z_c)
-    
-    
-    integrand = parametrized_field.dot(curve.diff())
+        # parametrizing the field using the curve equation
+        parametrized_field =field.subs(x, x_c).subs(y, y_c).subs(z, z_c)
+        
+        
+        integrand = parametrized_field.dot(item.diff())
+        integral += sp.integrate(integrand,var).evalf()
     
         
-    return sp.integrate(integrand,a).evalf()
+    return integral
 
 # gradient in Cartesian coordinate system
 def gradient(func, point=None, coordinate=None):
