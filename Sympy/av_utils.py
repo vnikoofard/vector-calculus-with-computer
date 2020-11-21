@@ -961,34 +961,46 @@ def line_integral_scalar(field,curve,a):
         l = av.lines([(1,2,3), (3,4,5),(5,6,7)])
         av.line_integral_scalar(z, curve=l, a=(t,0,3)) # one interval for all curves
         av.line_integral_scalar(z, curve=l, a=((t,0,3),(t,0,1))) #one interval for each curve
-    '''
-    global x,y,z
-    
+    '''    
 
     if isinstance(curve, Iterable):
-        R = list(curve[0].separate().keys())[0]
         if not isinstance(a[0], Iterable):
             a = len(curve)*(a,)
+        else:
+            assert len(a) == len(curve), 'the number of intervals must be the same as the curves'
     else:
-        R = list(curve.separate().keys())[0]
         curve = [curve]
         a = [a]
 
+    #getting the name of the coordinate system of the curve.
+    R = list(curve[0].separate().keys())[0]
+
+    #getting the parameters of the field
+    param_field = [p for p in field.free_symbols if not p.is_Vector]
 
     integral = 0
     for item,var in zip(curve,a):
-        param = [p for p in item.free_symbols if not p.is_Vector]
-        assert len(param)==1, "A curve has only one parameter"
-        assert param[0]==var[0], "the parameter of the curve must be the same as the integration variable."
+        field_tmp = field
+        param_curve = [p for p in item.free_symbols if not p.is_Vector]
+        assert len(param_curve)==1, "A curve has only one parameter"
+        assert param_curve[0].name==var[0].name, "the parameter of the curve must be the same as the integration variable."
         rx,ry,rz = item.dot(R.i),item.dot(R.j),item.dot(R.k)
         
         # parametrizing the field using the curve parametric equation
-        parametrized_field = field.subs(x,rx).subs(y,ry).subs(z,rz)
+        # parametrizing the field using the curve equation
+        for par in param_field:
+            if par.name == 'x':
+                field_tmp = field_tmp.subs(par, rx)
+            elif par.name == 'y':
+                field_tmp = field_tmp.subs(par, ry)
+            elif par.name == 'z':
+                field_tmp = field_tmp.subs(par, rz)      
+
         module = item.diff().magnitude().simplify()
             
     
-        integrand = (parametrized_field*module).simplify()
-        integral += sp.integrate(integrand,var).evalf()
+        integrand = (field_tmp*module).simplify()
+        integral += sp.integrate(integrand,(param_curve[0], var[1],var[2])).evalf()
         
     return integral
 
@@ -1021,41 +1033,48 @@ def line_integral_vectorial(field,curve,a):
     
     '''
 
-    global x,y,z
-
     if isinstance(curve, Iterable):
-        R = list(curve[0].separate().keys())[0]
         if not isinstance(a[0], Iterable):
             a = len(curve)*(a,)
+        else:
+            assert len(a) == len(curve), 'the number of intervals must be the same as the curves'
     else:
-        R = list(curve.separate().keys())[0]
         curve = [curve]
         a = [a]
     
-    #taking the name of the coordinate system. Here we assume that the filed and curve are using the same coordinate system
+    #getting the name of the coordinate system. Here we assume that the filed and curve are using the same coordinate system
     R = list(curve[0].separate().keys())[0]
     R_f = list(field.separate().keys())[0]
     assert R==R_f, 'the given filed and curve(s) must be in a same coordinate system'
     
+    #getting the parameters of the field
+    param_field = [p for p in field.free_symbols if not p.is_Vector]
+
     integral = 0
     for item,var in zip(curve,a):
+        field_tmp = field
     
         x_c = item.dot(R.i)
         y_c = item.dot(R.j)
         z_c = item.dot(R.k)
-        
-        param = [p for p in item.free_symbols if not p.is_Vector]
-        assert len(param)==1, "A curve has only one parameter"
-        assert param[0]==var[0], "the parameter of the curve must be the same as the integration variable."
 
+        #getting the parmeter of the curve
+        param_curve = [p for p in item.free_symbols if not p.is_Vector]
+        assert len(param_curve)==1, "A curve has only one parameter"
+        assert param_curve[0].name == var[0].name, "the parameter of the curve must be the same as the integration variable."
+        
         # parametrizing the field using the curve equation
-        parametrized_field =field.subs(x, x_c).subs(y, y_c).subs(z, z_c)
+        for par in param_field:
+            if par.name == 'x':
+                field_tmp = field_tmp.subs(par, x_c)
+            elif par.name == 'y':
+                field_tmp = field_tmp.subs(par, y_c)
+            elif par.name == 'z':
+                field_tmp = field_tmp.subs(par, z_c)        
         
-        
-        integrand = parametrized_field.dot(item.diff())
-        integral += sp.integrate(integrand,var).evalf()
+        integrand = field_tmp.dot(item.diff())
+        integral += sp.integrate(integrand,(param_curve[0], var[1],var[2])).evalf()
     
-        
     return integral
 
 # gradient in Cartesian coordinate system
@@ -1272,3 +1291,17 @@ def lines(points, coordinate=None):
         lins.append(line(points[i],points[i+1], coordinate=coordinate))
         i+=1
     return lins
+
+    
+# change the variables from Cartesian to polar coordinate system
+def cartesian_to_polar(func):
+    r, theta = sp.symbols('r theta')
+    params = [p for p in func.free_symbols if not p.is_Vector]
+
+    for var in params:
+        
+        if var.name =='x':
+            func = func.subs(var, r*sp.cos(theta))
+        if var.name == 'y':
+            func = func.subs(var,r*sp.sin(theta))
+    return func.simplify()
