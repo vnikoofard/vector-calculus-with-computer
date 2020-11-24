@@ -586,6 +586,13 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
     uGrid, vGrid = np.meshgrid(var1, var2)
     xx, yy, zz = xx_np(uGrid,vGrid), yy_np(uGrid,vGrid), zz_np(uGrid,vGrid)
     
+    if isinstance(xx,int):
+        xx = xx*np.ones((points,points))
+    if isinstance(yy,int):
+        yy = yy*np.ones((points,points))
+    if isinstance(zz,int):
+        zz = zz*np.ones((points,points))
+    
           
     if fig is False:
         fig = go.Figure()
