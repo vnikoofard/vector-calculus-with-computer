@@ -528,7 +528,7 @@ def plot3d(func, inter1=None, inter2=None, fig=False, xtitle='X', ytitle='Y', zt
     
     assert func.free_symbols ==set([inter1[0],inter2[0]]), "The variables of the function aren't the same as the declared in the intervals"
     
-    func_np = sp.lambdify([inter1[0],inter2[0]], func)
+    func_np = sp.lambdify(vars, func)
     
     points = eval(str(points) + 'j')
     xx, yy = np.mgrid[inter1[1]:inter1[2]:points, inter2[1]:inter2[2]:points]
@@ -842,11 +842,11 @@ def plane_1(a,b,c):
     plane_temp = sp.Plane(sp.Point3D(*a),sp.Point3D(*b),sp.Point3D(*c))
     vn = plane_temp.normal_vector
     
-    return -(vn[0]*(x-a[0])+vn[1]*(y-a[1]))/vn[2] + a[2]
+    return sp.Eq(-(vn[0]*(x-a[0])+vn[1]*(y-a[1]))/vn[2] + a[2],0)
 
 # construct plane given three points using determinent 
 
-def plane_2(a,b,c): 
+def plane(a,b,c): 
     '''
     a,b,c : tuples with three element (x,y,z)
     '''
@@ -855,7 +855,7 @@ def plane_2(a,b,c):
     matrix = [[x ,y, z,1],[a[0],a[1],a[2],1],
                       [b[0],b[1],b[2],1],[c[0],c[1],c[2],1]]
     matrix = sp.Matrix(matrix)
-    return sp.solve(matrix.det(),z)[0]
+    return sp.Eq(sp.solve(matrix.det(),z)[0],0)
 
 # Norm of a vector
 def Norm(v):
@@ -1078,14 +1078,15 @@ def line_integral_vectorial(field,curve,a):
     return integral
 
 # gradient in Cartesian coordinate system
-def gradient(func, point=None, coordinate=None):
+def gradient(func, vars, point=None, coordinate=None):
     """
     - Arguments:
-        ``func``: A function with 2 or 3 variables in the Cartesian coordinate system (x,y) or (x,y,z). 
-        ``point``: optional. A point in the plano or space.
-        ``coordinate``: optional. The name of the coordinate system.
+        `func`: A function with 2 or 3 variables in the Cartesian coordinate system (x,y) or (x,y,z). 
+        `vars`: variables of the function
+        `point`: optional. A point in the plano or space.
+        `coordinate`: optional. The name of the coordinate system.
     - Return:
-        ``grad``: The gradient of the function
+        The gradient of the function
     """
     #vars = (list(sp.ordered(func.free_symbols)))
 
@@ -1093,7 +1094,29 @@ def gradient(func, point=None, coordinate=None):
         R = sv.CoordSys3D('R')
     else:
         R = coordinate
-     
+        
+    x = [var for var in vars if var.name=='x']
+    y = [var for var in vars if var.name=='y']
+    z = [var for var in vars if var.name=='z']
+        
+    if len(x)>0:
+        x = x[0]
+    else:
+        x = sp.symbols('x')
+    if len(y)>0:
+        y = y[0]
+    else:
+        y = sp.symbols('y')
+    if len(z)>0:
+        z = z[0]
+    else:
+        z = sp.symbols('z')
+            
+    #if len(vars) == 3: 
+    #    grad = func.diff(vars[0])*R.i + func.diff(vars[1])*R.j + func.diff([vars[2]])*R.k
+    #if len(vars) == 2:
+        
+            
     grad = func.diff(x)*R.i + func.diff(y)*R.j + func.diff(z)*R.k
     
     
@@ -1107,41 +1130,80 @@ def gradient(func, point=None, coordinate=None):
 
 
 # Curl in the Cartesian coordinate system   
-def rotacional(func, point=None, coordinate=None):
+def curl(func, vars, point=None, coordinate=None):
     """
     - Arguments:
-        ``func``: A function with 3 variables in the Cartesian coordinate system (x,y,z). 
-        ``point``: optional. A point in the plano or space.
-        ``coordinate``: optional. The name of the coordinate system.
+        `func`: A function with 3 variables in the Cartesian coordinate system (x,y,z).
+        `vars`: variables of the function
+        `point`: optional. A point in the plano or space.
+        `coordinate`: optional. The name of the coordinate system.
     - Return:
-        ``curl``: The curl of the function
+        The curl of the function
     """
+    x = [var for var in vars if var.name=='x']
+    y = [var for var in vars if var.name=='y']
+    z = [var for var in vars if var.name=='z']
+
+    if len(x)>0:
+        x = x[0]
+    else:
+        x = sp.symbols('x')
+    if len(y)>0:
+        y = y[0]
+    else:
+        y = sp.symbols('y')
+    if len(z)>0:
+        z = z[0]
+    else:
+        z = sp.symbols('z')
+        
     if coordinate:
         R = coordinate
     else:
         R = sv.CoordSys3D('R')
+        
     func_x = func & R.i
     func_y = func & R.j
     func_z = func & R.k
+    
     curl_x = func_z.diff(y) - func_y.diff(z)
     curl_y = func_x.diff(z) - func_z.diff(x)
     curl_z = func_y.diff(x) - func_x.diff(y)
     curl = curl_x*R.i + curl_y*R.j + curl_z*R.k
+    
     if point:
         curl = curl.subs({x:point[0], y:point[1], z:point[2]})
 
     return curl
     
 # Divergent in the Cartesian coordinate system
-def divergente(func, point=None, coordinate=None):
+def divergence(func, vars, point=None, coordinate=None):
     """
     - Arguments:
-        ``func``: A function with 3 variables in the Cartesian coordinate system (x,y,z). 
-        ``point``: optional. A point in the plano or space.
-        ``coordinate``: optional. The name of the coordinate system.
+        `func`: A function with 3 or 3 variables in the Cartesian coordinate system (x,y,z). 
+        `vars`: variables of the function
+        `point`: optional. A point in the plano or space.
+        `coordinate`: optional. The name of the coordinate system.
     - Return:
-        ``div``: The divergent of the function
+        The divergent of the function
     """
+    x = [var for var in vars if var.name=='x']
+    y = [var for var in vars if var.name=='y']
+    z = [var for var in vars if var.name=='z']
+        
+    if len(x)>0:
+        x = x[0]
+    else:
+        x = sp.symbols('x')
+    if len(y)>0:
+        y = y[0]
+    else:
+        y = sp.symbols('y')
+    if len(z)>0:
+        z = z[0]
+    else:
+        z = sp.symbols('z')
+        
     if coordinate:
         R = coordinate
     else:
@@ -1305,3 +1367,47 @@ def cartesian_to_polar(func):
         if var.name == 'y':
             func = func.subs(var,r*sp.sin(theta))
     return func.simplify()
+
+
+# Integration by Riemannian Sum
+def riemann_sum(func,a,b,N,method='midpoint'):
+    '''Compute the Riemann sum of f(x) over the interval [a,b].
+    
+    Credit to: https://www.math.ubc.ca/~pwalls/math-python/integration/riemann-sums/
+    
+    Parameters
+    ----------
+    `func` : function
+        Vectorized function of one variable
+    `a` , `b` : numbers
+        Endpoints of the interval [a,b]
+    `N` : integer
+        Number of subintervals of equal length in the partition of [a,b]
+    `method` : string
+        Determines the kind of Riemann sum:
+        `right` : Riemann sum using right endpoints
+        `left` : Riemann sum using left endpoints
+        `midpoint` (default) : Riemann sum using midpoints
+
+    Returns
+    -------
+    float
+        Approximation of the integral given by the Riemann sum.
+    '''
+    dx = (b - a)/N
+    x = np.linspace(a,b,N+1)
+    
+    var = list(func.free_symbols)[0]
+    f_np = sp.lambdify(var, func)
+
+    if method == 'left':
+        x_left = x[:-1]
+        return np.sum(f_np(x_left)*dx)
+    elif method == 'right':
+        x_right = x[1:]
+        return np.sum(f_np(x_right)*dx)
+    elif method == 'midpoint':
+        x_mid = (x[:-1] + x[1:])/2
+        return np.sum(f_np(x_mid)*dx)
+    else:
+        raise ValueError("Method must be 'left', 'right' or 'midpoint'.")
