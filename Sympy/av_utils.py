@@ -551,12 +551,16 @@ def plot3d(func, inter1=None, inter2=None, fig=False, xtitle='X', ytitle='Y', zt
     
 # Parametric plot 3D
 
-def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title='3D Surface Plot', points = 50):
+def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', 
+                                ytitle= 'Y', ztitle = "Z", title='3D Surface Plot', 
+                                points = 50, scene_aspectmode = 'data', surfacecolor=None):
 
     '''
-    func: must be a either a tuple with three components or a parametric equation in the class sympy.vector
-    inter1: (parameter, start, end)
-    inter2: (parameter, start, end)
+    `func`: must be a either a tuple with three components or a parametric equation in the class sympy.vector
+    `inter1`: (parameter, start, end)
+    `inter2`: (parameter, start, end)
+    `scene_aspectmode` = 'data' or 'cube'
+    `surfacecolor`: function. a sympy function to determine the color of the surface. 
     '''
     
     if inter1 is None:
@@ -586,6 +590,7 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
     uGrid, vGrid = np.meshgrid(var1, var2)
     xx, yy, zz = xx_np(uGrid,vGrid), yy_np(uGrid,vGrid), zz_np(uGrid,vGrid)
     
+    # if one of the coordinate be constant. 
     if isinstance(xx,int):
         xx = xx*np.ones((points,points))
     if isinstance(yy,int):
@@ -593,19 +598,38 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
     if isinstance(zz,int):
         zz = zz*np.ones((points,points))
     
-          
+    if surfacecolor:
+        x_col = np.linspace(xx.min(), xx.max(), points)
+        y_col = np.linspace(yy.min(), yy.max(), points)
+        z_col = np.linspace(zz.min(), zz.max(), points)
+        
+        xx_col, yy_col, zz_col = np.meshgrid(x_col,y_col, z_col)
+        
+        vars = list(surfacecolor.free_symbols)
+        color_np = sp.lambdify(vars, surfacecolor) 
+        for ind, var in enumerate(vars):
+            if var.name == 'x':
+                vars[ind] = xx
+            elif var.name == 'y':
+                vars[ind] = yy
+            elif var.name == 'z':
+                vars[ind] = zz
+        surfacecolor = color_np(*vars)
+
+        
     if fig is False:
         fig = go.Figure()
-        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
+        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False, surfacecolor = surfacecolor)
         fig.update_layout(title=title, xaxis_title=xtitle,
-                          yaxis_title= ytitle, scene_aspectmode='cube')
+                          yaxis_title= ytitle, scene_aspectmode=scene_aspectmode)
     
     else:
-        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False)
+        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False, surfacecolor = surfacecolor)
         fig.update_layout(title=title, xaxis_title=xtitle,
-                          yaxis_title= ytitle, scene_aspectmode='cube')
+                          yaxis_title= ytitle, scene_aspectmode=scene_aspectmode)
     
     return fig
+
 
 # Density function (or Scalar field) plot
         
