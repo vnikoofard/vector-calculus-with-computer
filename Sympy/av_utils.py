@@ -1425,6 +1425,7 @@ def riemann_sum(func,a,b,N,method='midpoint'):
     float
         Approximation of the integral given by the Riemann sum.
     '''
+    a, b = float(a), float(b)
     dx = (b - a)/N
     x = np.linspace(a,b,N+1)
     
