@@ -553,7 +553,7 @@ def plot3d(func, inter1=None, inter2=None, fig=False, xtitle='X', ytitle='Y', zt
 
 def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', 
                                 ytitle= 'Y', ztitle = "Z", title='3D Surface Plot', 
-                                points = 50, scene_aspectmode = 'data', surfacecolor=None):
+                                points = 50, scene_aspectmode = 'data', surfacecolor=None,  showscale=True):
 
     '''
     `func`: must be a either a tuple with three components or a parametric equation in the class sympy.vector
@@ -619,15 +619,14 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
         
     if fig is False:
         fig = go.Figure()
-        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False, surfacecolor = surfacecolor)
+        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False, surfacecolor = surfacecolor, showscale=showscale)
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title= ytitle, scene_aspectmode=scene_aspectmode)
     
     else:
-        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False, surfacecolor = surfacecolor)
+        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False, surfacecolor = surfacecolor, showscale=showscale)
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title= ytitle, scene_aspectmode=scene_aspectmode)
-    
     return fig
 
 
@@ -740,21 +739,20 @@ def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None,
 
         
 # plotting a 3D vector field
-def plot3d_vector_field(func, inter1=None, inter2=None, inter3 = None, fig = None, points=15, sizemode=None, sizeref=1):
-    
+def plot3d_vector_field(field, inter1=None, inter2=None, inter3 = None, fig = None, points=15, sizemode=None, sizeref=1):
     
     '''
     - Arguments:
-        ``func``: must be vector field with three variables, with Sympy symbols in the format of a vector or tuple
-        ``inter1``: (variable1, start, end)
-        ``inter2``: (variable2, start, end)
-        ``inter3``: (variable3, start, end)
+        `field`: must be vector field with three variables, with Sympy symbols in the format of a vector or tuple
+        `inter1`: (variable1, start, end)
+        `inter2`: (variable2, start, end)
+        `inter3`: (variable3, start, end)
     - Return:
-        ``fig``: a Plotly figure object
+        `fig`: a Plotly figure object
     '''
     
     
-    vars = list(sp.ordered(func.free_symbols))
+    vars = list(sp.ordered(field.free_symbols))
     if inter1 is None:
         inter1 = (vars[0], -5,5)
     if inter2 is None:
@@ -767,36 +765,62 @@ def plot3d_vector_field(func, inter1=None, inter2=None, inter3 = None, fig = Non
     var3 = inter3[0]
     num = eval(str(points) +'j')
     
+    if isinstance(field, sp.Expr):
+        if field.is_Vector:
+            R = list(field.separate().keys())[0]
+            field_x = field & R.i
+            field_y = field & R.j
+            field_z = field & R.k
+            #field = tuple(field.components.values())
+    elif isinstance(field, tuple) or isinstance(field, list):
+        assert len(field)==3, "the field must have three elements"
+        field_x = field[0]
+        field_y = field[1]
+        field_z = field[2]
+    else:
+        print("the field isn't recognized. it must be a tuple of three sympy functions or a vector field of class sympy.vector")
     
     
-    if isinstance(func, sp.Expr):
-        if func.is_Vector:
-            func = tuple(func.components.values())
+    xx,yy,zz = np.mgrid[inter1[1]:inter1[2]:num, inter2[1]:inter2[2]:num, inter3[1]:inter3[2]:num]     
     
-    assert len(func)==3, "the field must have three elements"
     
-    xx,yy,zz = np.mgrid[inter1[1]:inter1[2]:num, inter2[1]:inter2[2]:num, inter3[1]:inter3[2]:num]        
+    field_x_np = sp.lambdify([var1,var2,var3], field_x)
+    field_y_np = sp.lambdify([var1,var2,var3], field_y)
+    field_z_np = sp.lambdify([var1,var2,var3], field_z)
 
 
-    func_np = sp.lambdify([var1,var2,var3],func)
+    if isinstance(field_x, sp.core.numbers.Number):
+        u = np.ones(xx.shape)*float(field_x)
+    else:
+        u = field_x_np(xx,yy,zz)
+        u = normalize(u)
+    
+    if isinstance(field_y, sp.core.numbers.Number):
+        v = np.ones(yy.shape)*float(field_y)
+    else:
+        v = field_y_np(xx,yy,zz)
+        v = normalize(v)
+    
+    if isinstance(field_z, sp.core.numbers.Number):
+        w = np.ones(zz.shape)*float(field_z)
+    else:
+        w = field_z_np(xx,yy,zz)
+        w = normalize(w)
 
-    u,v,w = func_np(xx,yy,zz)
-    u,v,w = normalize(u), normalize(v),normalize(w)
-    
-    
     
     xx,yy,zz,u,v,w = flatten_vf(xx,yy,zz,u,v,w)
     
     if fig is None:
         fig = go.Figure()
-        fig.add_cone(x= xx,y = yy,z = zz,u = u,v = v,w = w, colorscale='Blues',
+        fig.add_cone(x= xx, y = yy, z = zz,u = u, v = v, w = w, colorscale='Blues',
     sizemode=sizemode, sizeref = sizeref)
         return fig
             
     else:
-        fig.add_cone(x= xx,y = yy,z = zz,u = u,v = v,w = w, colorscale='Blues',
+        fig.add_cone(x= xx, y = yy, z = zz, u = u, v = v, w = w, colorscale='Blues',
     sizemode=sizemode, sizeref = sizeref)
         return fig
+
 
 
 # Plot a 2D vector field    
