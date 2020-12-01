@@ -559,7 +559,7 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
     `func`: must be a either a tuple with three components or a parametric equation in the class sympy.vector
     `inter1`: (parameter, start, end)
     `inter2`: (parameter, start, end)
-    `scene_aspectmode` = 'data' or 'cube'
+    `scene_aspectmode`: string. 'data' or 'cube'
     `surfacecolor`: function. a sympy function to determine the color of the surface. 
     '''
     
@@ -568,13 +568,22 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
     if inter2 is None:
         print("Please input the interval for the second parameter in the format (parameter, begin, end)")
     
-    import sympy as sp
     if isinstance(func, sp.Expr):
         if func.is_Vector:
+            R = list(func.separate().keys())[0]
+            func_x = func & R.i
+            func_y = func & R.j
+            func_z = func & R.k
             func = tuple(func.components.values())
-
+    elif isinstance(func, tuple) or isinstance(fiefuncld, list):
+        assert len(func)==3, "the field must have three elements"
+        func_x = func[0]
+        func_y = func[1]
+        func_z = func[2]
+    else:
+        print("the field isn't recognized. it must be a tuple of three sympy functions or a vector field of class sympy.vector")
     #check if the parametric equation has three components.        
-    assert len(func) ==3, 'The parametric equation of a 3D surface must has 3 components.'
+    #assert len(func) ==3, 'The parametric equation of a 3D surface must has 3 components.'
 
     #check if the parameters of the equation are the same as parameters declared in the intervals.
     params = [func[i].free_symbols for i in range(len(func))]
@@ -582,9 +591,9 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
     assert params_unique == set([inter1[0],inter2[0]]), "The parameters of the function aren't the same as the ones declared in the intervals"
     
     
-    xx_np = sp.lambdify([inter1[0],inter2[0]], func[0])
-    yy_np = sp.lambdify([inter1[0],inter2[0]], func[1])
-    zz_np = sp.lambdify([inter1[0],inter2[0]], func[2])
+    xx_np = sp.lambdify([inter1[0],inter2[0]], func_x)
+    yy_np = sp.lambdify([inter1[0],inter2[0]], func_y)
+    zz_np = sp.lambdify([inter1[0],inter2[0]], func_z)
     
     var1,var2 = np.linspace(inter1[1],inter1[2],points), np.linspace(inter2[1],inter2[2],points)
     uGrid, vGrid = np.meshgrid(var1, var2)
