@@ -24,7 +24,7 @@ def plot_curve(x, y, fig=False, xtitle='X', ytitle='Y', title='2D Plot', lw=5):
     return fig      
 
 
-# 3D curve plot
+# 3D curve plot. A wrapper for plotly scatter3d plot
 def plot_curve3d(x, y, z, fig=False, xtitle='X', ytitle='Y', title='3D Plot', aspectmode='data', lw =5):
     
     if fig is False:
