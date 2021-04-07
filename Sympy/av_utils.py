@@ -10,8 +10,8 @@ from collections.abc import Iterable
 
 
 # 2D curve plot. A wrapper for plotly scatter plot
-def plot_curve(x, y, fig=False, xtitle='X', ytitle='Y', title='2D Plot', lw=5):    
-    if fig is False:
+def plot_curve(x, y, fig=None, xtitle='X', ytitle='Y', title='2D Plot', lw=5):    
+    if fig is None:
         fig = go.Figure()
         fig.add_scatter(x=x, y=y, showlegend=False, mode='lines', line_width=lw)
         fig.update_layout(title=title, xaxis_title=xtitle,
@@ -25,9 +25,9 @@ def plot_curve(x, y, fig=False, xtitle='X', ytitle='Y', title='2D Plot', lw=5):
 
 
 # 3D curve plot. A wrapper for plotly scatter3d plot
-def plot_curve3d(x, y, z, fig=False, xtitle='X', ytitle='Y', title='3D Plot', aspectmode='data', lw =5):
+def plot_curve3d(x, y, z, fig=None, xtitle='X', ytitle='Y', title='3D Plot', aspectmode='data', lw =5):
     
-    if fig is False:
+    if fig is None:
         fig = go.Figure()
         fig.add_scatter3d(x=x, y=y, z=z, showlegend=False,
                           mode='lines', line_width=lw)
@@ -58,7 +58,7 @@ def plot_curve3d(x, y, z, fig=False, xtitle='X', ytitle='Y', title='3D Plot', as
 
 
 # plot a 2D implicit function like a circle or an ellipse.
-def plot_implicit(func, inter1=None, inter2=None, fig=False, xtitle='X',
+def plot_implicit(func, inter1=None, inter2=None, fig=None, xtitle='X',
                   ytitle='Y', title=None, points=50, colorscale = 'Blues'):
     '''
     - Argument:
@@ -101,7 +101,7 @@ def plot_implicit(func, inter1=None, inter2=None, fig=False, xtitle='X',
     X, Y = np.meshgrid(xx, yy)
     Z = func_np(X, Y)
 
-    if fig is False:
+    if fig is None:
         fig = go.Figure()
         fig.add_contour(x=xx, y=yy, z=Z, showlegend=False, name=str(func),contours_coloring='lines',
         line_width=2, colorscale=colorscale,
@@ -120,9 +120,62 @@ def plot_implicit(func, inter1=None, inter2=None, fig=False, xtitle='X',
 
     return fig
 
+# Plot a parametric curve in 2D
+def plot_parametric_curve(func, inter1=None, fig=None, xtitle='X', ytitle='Y', 
+                            title='Curve Plot', points=50,
+                            ):
+
+    '''
+    - Arguments:
+        `func`: must be either a tuple with three components (e.g. Sympy objects) or a parametric equation in the class sympy.vector
+        `inter1`: (parameter, start, end)
+        `fig`: A plotly figure object
+        `xtitle`: x-axis title
+        `ytitle`: y-axis title
+        `title`: title of the figure
+        `points`: the number of points to plot the curve
+    - Return:
+        A figure object of Plotly
+    '''
+    if inter1 is None:
+        print("Please input the interval for the first parameter in the format (parameter, begin, end)")
+
+    if isinstance(func, sp.Expr):
+        if func.is_Vector:
+            func = tuple(func.components.values())
+
+    # check if the parametric equation has three components.        
+    assert len(func) == 2, 'The parametric equation of a 2D curve must has 2 components.'
+
+    # check if the parameters of the equation are the same as parameters declared in the intervals.
+    params = [func[i].free_symbols for i in range(len(func)) if isinstance(func[i], sp.Expr) ]
+    params_unique = set([item for sublist in params for item in sublist])
+    assert params_unique == set([inter1[0]]), "The parameters of the function aren't the same as the ones declared in the intervals"
+
+    xx_np = sp.lambdify(inter1[0], func[0])
+    yy_np = sp.lambdify(inter1[0], func[1])
+
+    var1 = np.linspace(inter1[1], inter1[2], points)
+    xx, yy = xx_np(var1), yy_np(var1)
+    #xx, yy, zz = xx_np(var1), yy_np(var1), zz_np(var1)
+
+    l = list([xx, yy])
+    for item in range(len(l)):
+        if type(item) != np.ndarray:
+            l[item] *= np.ones(var1.shape)
+
+    xx, yy = l[0], l[1]
+
+    if fig is None:
+
+        return plot_curve(x=xx, y=yy, xtitle=xtitle, ytitle=ytitle, title=title)
+
+    else:
+        return plot_curve(x=xx, y=yy, fig=fig, xtitle=xtitle, ytitle=ytitle, title=title)
+
 
 # Plot a parametric curve in 3D
-def plot3d_parametric_curve(func, inter1=None, fig=False, xtitle='X', ytitle='Y', 
+def plot3d_parametric_curve(func, inter1=None, fig=None, xtitle='X', ytitle='Y', 
                             title='3D Curve Plot', points=50,
                             aspectmode='data'):
 
@@ -147,7 +200,7 @@ def plot3d_parametric_curve(func, inter1=None, fig=False, xtitle='X', ytitle='Y'
             func = tuple(func.components.values())
 
     # check if the parametric equation has three components.        
-    assert len(func) ==3, 'The parametric equation of a 3D surface must has 3 components.'
+    assert len(func) ==3, 'The parametric equation of a 3D curve must has 3 components.'
 
     # check if the parameters of the equation are the same as parameters declared in the intervals.
     params = [func[i].free_symbols for i in range(len(func)) if isinstance(func[i], sp.Expr) ]
@@ -161,14 +214,14 @@ def plot3d_parametric_curve(func, inter1=None, fig=False, xtitle='X', ytitle='Y'
     var1 = np.linspace(inter1[1], inter1[2], points)
     xx, yy, zz = xx_np(var1), yy_np(var1), zz_np(var1)
 
-    l = list(xx, yy, zz)
+    l = list([xx, yy, zz])
     for item in range(len(l)):
         if type(item) != np.ndarray:
             l[item] *= np.ones(var1.shape)
 
     xx, yy, zz = l[0], l[1], l[2]
 
-    if fig is False:
+    if fig is None:
 
         return plot_curve3d(x=xx, y=yy, z=zz, xtitle=xtitle, ytitle=ytitle, title=title,aspectmode=aspectmode)
 
@@ -177,7 +230,7 @@ def plot3d_parametric_curve(func, inter1=None, fig=False, xtitle='X', ytitle='Y'
 
 
 # Position vector originating from origin!
-def position_vector(x_0, y_0, rt1=0.1, rt2=1/3, fig=False, color='black', showgrid=True, zeroline=True, lw=2):
+def position_vector(x_0, y_0, rt1=0.1, rt2=1/3, fig=None, color='black', showgrid=True, zeroline=True, lw=2):
 
     '''
     The ideia of the below function is as follow. First, we write the parametric equation for the segment of 
@@ -216,7 +269,7 @@ def position_vector(x_0, y_0, rt1=0.1, rt2=1/3, fig=False, color='black', showgr
     
     s_bar = length2/(2*l)
     
-    if fig is False:
+    if fig is None:
         fig = go.Figure()
     
         fig.add_scatter(x = [x_0,y_0*s_bar+x_bar, -y_0*s_bar+x_bar,x_0],
@@ -239,9 +292,9 @@ def position_vector(x_0, y_0, rt1=0.1, rt2=1/3, fig=False, color='black', showgr
     return fig
 
         
-def position_vector3d(x_0, y_0, z_0, ratio1 = 0.1, ratio2 = 1/3, fig=False, color = 'black', lw=2):
+def position_vector3d(x_0, y_0, z_0, ratio1 = 0.1, ratio2 = 1/3, fig=None, color = 'black', lw=2):
     
-    if fig is False:
+    if fig is None:
         fig = go.Figure()
         fig.add_scatter3d(x = [0,0.95*x_0],y=[0,0.95*y_0],z=[0,0.95*z_0], mode = 'lines'
                           , line_width=lw,line_color = 'royalblue')
@@ -260,7 +313,7 @@ def position_vector3d(x_0, y_0, z_0, ratio1 = 0.1, ratio2 = 1/3, fig=False, colo
     
     return fig
 
-def vector(x, y, u, v, rt1=0.1, rt2=1/3, fig=False, color='black', showgrid=True, zeroline=True, lw=3):
+def vector(x, y, u, v, rt1=0.1, rt2=1/3, fig=None, color='black', showgrid=True, zeroline=True, lw=3):
     
     '''
     (x,y): initial point of the vector
@@ -343,7 +396,7 @@ def vector(x, y, u, v, rt1=0.1, rt2=1/3, fig=False, color='black', showgrid=True
         df = df.append({'x':x_bar, 'y':y_bar}, ignore_index=True)
         df = df.append({'x':None, 'y':None}, ignore_index=True)
     
-    if fig is False:
+    if fig is None:
         fig = go.Figure()
         fig.add_scatter(x = df.x, y=df.y,fill='toself', mode = 'lines', opacity=1,line_color = color, line_width=lw)
         fig.update_layout(yaxis=dict(scaleanchor="x", scaleratio=1),showlegend = False)
@@ -359,7 +412,7 @@ def vector(x, y, u, v, rt1=0.1, rt2=1/3, fig=False, color='black', showgrid=True
     return fig     
 
 # it is an old version of `vector` method. This old version needs a loop to plot multiple vectors
-def plot_vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black', showgrid = True, zeroline=True, lw=3):
+def plot_vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=None, color = 'black', showgrid = True, zeroline=True, lw=3):
     
     '''
     (x_0,y_0): initial point of the vector
@@ -411,7 +464,7 @@ def plot_vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black
     
     s_bar = length2/(2*l)
     
-    if fig is False:
+    if fig is None:
         fig = go.Figure()
     
         fig.add_scatter(x = [x_1,b*s_bar+x_bar, -b*s_bar+x_bar,x_1],
@@ -434,9 +487,9 @@ def plot_vector(x_0,y_0,x_1,y_1, rt1 = 0.1, rt2 = 1/3, fig=False, color = 'black
     return fig
     
     
-def vector3d(x_0, y_0, z_0, x_1, y_1, z_1, ratio1 = 0.1, ratio2 = 1/3, fig=False, color = 'royalblue', lw = 6):
+def vector3d(x_0, y_0, z_0, x_1, y_1, z_1, ratio1 = 0.1, ratio2 = 1/3, fig=None, color = 'royalblue', lw = 6):
     
-    if fig is False:
+    if fig is None:
         fig = go.Figure()
         fig.add_scatter3d(x = [x_0,0.95*x_1],y=[y_0,0.95*y_1],z=[z_0,0.95*z_1], mode = 'lines'
                           , line_width=lw,line_color = 'royalblue')
@@ -456,7 +509,7 @@ def vector3d(x_0, y_0, z_0, x_1, y_1, z_1, ratio1 = 0.1, ratio2 = 1/3, fig=False
     return fig
 
 #Plot a curve using its symbolic equation in the format f(x)
-def plot(func, inter1 = None, fig = False, xtitle = 'X', ytitle= 'Y', title=None, points = 50):
+def plot(func, inter1 = None, fig = None, xtitle = 'X', ytitle= 'Y', title=None, points = 50):
     
     '''
     - Argument:
@@ -486,7 +539,7 @@ def plot(func, inter1 = None, fig = False, xtitle = 'X', ytitle= 'Y', title=None
     
     
        
-    if fig is False:
+    if fig is None:
         fig = go.Figure()
         fig.add_scatter(x=xx, y=yy, showlegend=False, mode='lines', name= str(func))
         fig.update_layout(title=title, xaxis_title=xtitle,
@@ -502,7 +555,7 @@ def plot(func, inter1 = None, fig = False, xtitle = 'X', ytitle= 'Y', title=None
     return fig
 
 # Plot a surface using its symbolic equation in the format f(x,y)        
-def plot3d(func, inter1=None, inter2=None, fig=False, xtitle='X', ytitle='Y', ztitle="Z", title=None, points = 50, opacity = 0.9):
+def plot3d(func, inter1=None, inter2=None, fig=None, xtitle='X', ytitle='Y', ztitle="Z", title=None, points = 50, opacity = 0.9):
     
     '''
     - Arguments:
@@ -536,7 +589,7 @@ def plot3d(func, inter1=None, inter2=None, fig=False, xtitle='X', ytitle='Y', zt
     
     
        
-    if fig is False:
+    if fig is None:
         fig = go.Figure()
         fig.add_surface(x = xx , y = yy, z = zz, showlegend=False,name= str(func), opacity=opacity)
         fig.update_layout(title=title, xaxis_title=xtitle,
@@ -551,7 +604,7 @@ def plot3d(func, inter1=None, inter2=None, fig=False, xtitle='X', ytitle='Y', zt
     
 # Parametric plot 3D
 
-def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', 
+def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = None, xtitle = 'X', 
                                 ytitle= 'Y', ztitle = "Z", title='3D Surface Plot', 
                                 points = 50, scene_aspectmode = 'data', surfacecolor=None,  showscale=True):
 
@@ -626,7 +679,7 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
         surfacecolor = color_np(*vars)
 
         
-    if fig is False:
+    if fig is None:
         fig = go.Figure()
         fig.add_surface(x = xx , y = yy, z = zz, showlegend=False, surfacecolor = surfacecolor, showscale=showscale)
         fig.update_layout(title=title, xaxis_title=xtitle,
@@ -641,7 +694,7 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = False, x
 
 # Density function (or Scalar field) plot
         
-def plot_density_function(func, inter1 = None, inter2 = None, fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title='2D Density Function', points = 50):
+def plot_density_function(func, inter1 = None, inter2 = None, fig = None, xtitle = 'X', ytitle= 'Y', ztitle = "Z", title='2D Density Function', points = 50):
     
     '''
     func: must be function with two variables
@@ -668,7 +721,7 @@ def plot_density_function(func, inter1 = None, inter2 = None, fig = False, xtitl
     
     x ,y = np.linspace(inter1[1],inter2[2],points), np.linspace(inter1[1],inter2[2],points)   
     
-    if fig is False:
+    if fig is None:
         fig = go.Figure()
         fig.add_heatmap(x = x , y = y, z = zz, connectgaps=True, zsmooth='best')
         fig.update_layout(title=title, xaxis_title=xtitle,
@@ -689,7 +742,7 @@ def plot_density_function(func, inter1 = None, inter2 = None, fig = False, xtitl
 #3D Density Function (or Scalar Field) plot
         
 def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None, 
-                          fig = False, xtitle = 'X', ytitle= 'Y', ztitle = "Z", 
+                          fig = None, xtitle = 'X', ytitle= 'Y', ztitle = "Z", 
                           title='2D Density Function', points = 50, isomin=0, isomax=20, opacity=0.4,surface_count=5):
     
     '''
@@ -720,7 +773,7 @@ def plot3d_density_function(func, inter1 = None, inter2 = None, inter3 = None,
     
     #x ,y = np.linspace(inter1[1],inter2[2],points), np.linspace(inter1[1],inter2[2],points)   
     
-    if fig is False:
+    if fig is None:
         fig = go.Figure()
         fig.add_isosurface(x = xx.flatten(), y = yy.flatten(), z = zz.flatten(),value=values.flatten(),
         isomin=isomin,
