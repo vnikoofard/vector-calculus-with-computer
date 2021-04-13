@@ -362,9 +362,11 @@ def vector(x, y, u, v, rt1=0.1, rt2=1/3, fig=None, color='black', showgrid=True,
     xx, yy = np.mgrid[-5:5:5j, -5:5:5j]
     field1_np = sp.lambdify([x,y], list(field1(x,y).components.values()), 'numpy')
     u,v = field1_np(xx,yy)
-    f = vector(x=xx.flatten(),y=yy.flatten(), u=u.flatten(), v=v.flatten())
+    f = vector(x=xx, y=yy, u=u, v=v)
     '''
     df = pd.DataFrame(columns=['x','y'])
+
+    x, y, u, v = x.flatten(), y.flatten(), u.flatten(), v.flatten()
 
     for x_0,u,y_0,v in zip(x,u,y,v):
         x_1 = x_0 + u
