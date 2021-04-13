@@ -630,7 +630,7 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = None, xt
             func_y = func & R.j
             func_z = func & R.k
             func = tuple(func.components.values())
-    elif isinstance(func, tuple) or isinstance(fiefuncld, list):
+    elif isinstance(func, tuple) or isinstance(func, list):
         assert len(func)==3, "the field must have three elements"
         func_x = func[0]
         func_y = func[1]
