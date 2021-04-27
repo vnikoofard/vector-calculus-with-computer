@@ -557,7 +557,9 @@ def plot(func, inter1 = None, fig = None, xtitle = 'X', ytitle= 'Y', title=None,
     return fig
 
 # Plot a surface using its symbolic equation in the format f(x,y)        
-def plot3d(func, inter1=None, inter2=None, fig=None, xtitle='X', ytitle='Y', ztitle="Z", title=None, points = 50, opacity = 0.9):
+def plot3d(func, inter1=None, inter2=None, fig=None,
+ xtitle='X', ytitle='Y', ztitle="Z", title=None, showscale=False,
+ points = 50, opacity = 0.9):
     
     '''
     - Arguments:
@@ -593,12 +595,12 @@ def plot3d(func, inter1=None, inter2=None, fig=None, xtitle='X', ytitle='Y', zti
        
     if fig is None:
         fig = go.Figure()
-        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False,name= str(func), opacity=opacity)
+        fig.add_surface(x = xx , y = yy, z = zz, showscale=showscale,name= str(func), opacity=opacity)
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title= ytitle, scene_aspectmode='cube')
     
     else:
-        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False,name= str(func), opacity=opacity)
+        fig.add_surface(x = xx , y = yy, z = zz, showscale=showscale,name= str(func), opacity=opacity)
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title= ytitle, scene_aspectmode='cube')
 
