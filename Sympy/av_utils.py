@@ -571,19 +571,31 @@ def plot3d(func, inter1=None, inter2=None, fig=None,
     '''
     if not isinstance(func, sp.Expr):
         func = sp.sympify(str(func))
+    
+    if isinstance(func, sp.Eq): # in the case of a av.plane object
+        func = func.rhs
 
-    vars = list(sp.ordered(func.free_symbols))
-    assert len(vars)==2, 'The function must have at most two variables'
-    if inter1 is None:
-        inter1 = (vars[0], -5,5)
-    if inter2 is None:
-        inter2 = (vars[1], -5,5)
+    
+    vars_func = list(sp.ordered(func.free_symbols))
+    
+
+    if len(vars_func) == 2:
+        vars = vars_func
+        if inter1 is None:
+            inter1 = (vars[0], -5,5)
+        if inter2 is None:
+            inter2 = (vars[1], -5,5)
+    elif len(vars_func) < 2:
+        vars = [inter1[0], inter2[0]]
+    
+    
+    
+    assert all([param in vars for param in vars_func]),  "The variables of the function aren't the same as the declared in the intervals"
         
     if title is None:
         title = str(func)
     
     
-    assert func.free_symbols ==set([inter1[0],inter2[0]]), "The variables of the function aren't the same as the declared in the intervals"
     
     func_np = sp.lambdify(vars, func)
     
@@ -955,7 +967,7 @@ def flatten_vf(x, y, z, u, v, w):
         
         
 # construct plane given three points using normal vector 
-def plane_1(a,b,c): 
+def plane(a,b,c): 
     '''
     a,b,c : tuples with three element (x,y,z)
     '''
@@ -963,11 +975,11 @@ def plane_1(a,b,c):
     plane_temp = sp.Plane(sp.Point3D(*a),sp.Point3D(*b),sp.Point3D(*c))
     vn = plane_temp.normal_vector
     
-    return sp.Eq(-(vn[0]*(x-a[0])+vn[1]*(y-a[1]))/vn[2] + a[2],0)
+    return sp.Eq(z, -(vn[0]*(x-a[0])+vn[1]*(y-a[1]))/vn[2] + a[2])
 
 # construct plane given three points using determinent 
 
-def plane(a,b,c): 
+def plane_1(a,b,c): 
     '''
     a,b,c : tuples with three element (x,y,z)
     '''
