@@ -685,12 +685,12 @@ def plot3d_parametric_surface(func, inter1 = None, inter2 = None, fig = None, xt
         
     if fig is None:
         fig = go.Figure()
-        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False, surfacecolor = surfacecolor, showscale=showscale)
+        fig.add_surface(x = xx , y = yy, z = zz, surfacecolor = surfacecolor, showscale=showscale)
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title= ytitle, scene_aspectmode=scene_aspectmode)
     
     else:
-        fig.add_surface(x = xx , y = yy, z = zz, showlegend=False, surfacecolor = surfacecolor, showscale=showscale)
+        fig.add_surface(x = xx , y = yy, z = zz, surfacecolor = surfacecolor, showscale=showscale)
         fig.update_layout(title=title, xaxis_title=xtitle,
                           yaxis_title= ytitle, scene_aspectmode=scene_aspectmode)
     return fig
