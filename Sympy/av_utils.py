@@ -569,6 +569,7 @@ def plot3d(func, inter1=None, inter2=None, fig=None,
     - Return:
         a plotly graph object
     '''
+    print(type(func))
     if not isinstance(func, sp.Expr):
         func = sp.sympify(str(func))
     
@@ -603,7 +604,8 @@ def plot3d(func, inter1=None, inter2=None, fig=None,
     xx, yy = np.mgrid[inter1[1]:inter1[2]:points, inter2[1]:inter2[2]:points]
     zz = func_np(xx,yy)
     
-    
+    if isinstance(zz, int) or isinstance(zz, float):
+        zz = zz*np.ones((len(xx), len(yy)))
        
     if fig is None:
         fig = go.Figure()
