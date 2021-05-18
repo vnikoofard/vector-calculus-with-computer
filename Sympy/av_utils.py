@@ -569,7 +569,6 @@ def plot3d(func, inter1=None, inter2=None, fig=None,
     - Return:
         a plotly graph object
     '''
-    print(type(func))
     if not isinstance(func, sp.Expr):
         func = sp.sympify(str(func))
     
@@ -1003,28 +1002,47 @@ def Unit_Vector(curve):
 #Arc Length
 def Arc_Length(curve, a): 
     #a: Um Tuple (variavel, inicio, fim)
-    return sp.integrate(Norm(curve.diff()),a)
+
+    return sp.integrate(Norm(curve.diff(t)),a)
 
 # Tangent Unitary vector
-def UT(curve): return curve.diff()/Norm(curve.diff())
+def UT(curve, param=None): 
+    if param is None:
+        t = sp.symbols('t')
+    else:
+        t = param
+    return curve.diff(t)/Norm(curve.diff(t))
 
 # Normal Unitary Vector
-def UN(curve): return UT(curve).diff()/Norm(UT(curve).diff())
+def UN(curve, param=None): 
+    if param is None:
+        t = sp.symbols('t')
+    else:
+        t = param
+    return (UT(curve).diff(t)/Norm(UT(curve).diff(t))).simplify()
 
 # Binormal Unitary Vector
 def UB(curve): return (UT(curve)^UN(curve)).simplify()
 
 # Curvature of a curve
-def curvature(curve): return Norm(UT(curve).diff())/Norm(curve.diff())
+def curvature(curve, param=None): 
+    if param is None:
+        t = sp.symbols('t')
+    else:
+        t = param
+
+    return Norm(UT(curve).diff())/Norm(curve.diff())
 
 # Torsion of a curve
-def torsion(curve , t=None): 
+def torsion(curve , param=None): 
     # t: is the parameter of the curve
 
-    if t ==None:
+    if param is None:
         t = sp.symbols('t')
+    else:
+        t = param
 
-    return (curve.diff().cross(curve.diff(t,2))).dot(curve.diff(t,3))/Norm(curve.diff().cross(curve.diff(t,2)))
+    return (curve.diff(t).cross(curve.diff(t,2))).dot(curve.diff(t,3))/Norm(curve.diff(t).cross(curve.diff(t,2)))
 
 #Integral of a parametric curve accepting the boundary condition to determine the constant of integration
 def integral_curve(curve,var, ics=None):
