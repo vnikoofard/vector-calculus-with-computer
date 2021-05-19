@@ -1045,7 +1045,7 @@ def torsion(curve , param=None):
     else:
         t = param
 
-    return ((curve.diff(t).cross(curve.diff(t,2))).dot(curve.diff(t,3))/Norm(curve.diff(t).cross(curve.diff(t,2)))).simplify()
+    return ((curve.diff(t).cross(curve.diff(t,2))).dot(curve.diff(t,3))/Norm(curve.diff(t).cross(curve.diff(t,2))))
 
 #Integral of a parametric curve accepting the boundary condition to determine the constant of integration
 def integral_curve(curve,var, ics=None):
