@@ -1025,13 +1025,16 @@ def UN(curve, param=None):
 def UB(curve): return (UT(curve)^UN(curve)).simplify()
 
 # Curvature of a curve
-def curvature(curve, param=None): 
+def curvature(curve, param=None, point=None): 
     if param is None:
         t = sp.symbols('t')
     else:
         t = param
-
-    return Norm(UT(curve).diff())/Norm(curve.diff())
+    
+    if point is None:
+        return ((UT(curve).diff(t).magnitude())/(curve.diff(t).magnitude()))
+    else:
+        return ((UT(curve).diff(t).magnitude())/(curve.diff(t).magnitude())).subs(t, point)
 
 # Torsion of a curve
 def torsion(curve , param=None): 
@@ -1042,7 +1045,7 @@ def torsion(curve , param=None):
     else:
         t = param
 
-    return (curve.diff(t).cross(curve.diff(t,2))).dot(curve.diff(t,3))/Norm(curve.diff(t).cross(curve.diff(t,2)))
+    return ((curve.diff(t).cross(curve.diff(t,2))).dot(curve.diff(t,3))/Norm(curve.diff(t).cross(curve.diff(t,2)))).simplify()
 
 #Integral of a parametric curve accepting the boundary condition to determine the constant of integration
 def integral_curve(curve,var, ics=None):
