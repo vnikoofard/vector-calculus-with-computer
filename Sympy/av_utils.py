@@ -25,12 +25,12 @@ def plot_curve(x, y, fig=None, xtitle='X', ytitle='Y', title='2D Plot', lw=5):
 
 
 # 3D curve plot. A wrapper for plotly scatter3d plot
-def plot_curve3d(x, y, z, fig=None, xtitle='X', ytitle='Y', title='3D Plot', aspectmode='data', lw =5):
+def plot_curve3d(x, y, z, fig=None, xtitle='X', ytitle='Y', title='3D Plot', aspectmode='data', lw =5, line=None):
     
     if fig is None:
         fig = go.Figure()
         fig.add_scatter3d(x=x, y=y, z=z, showlegend=False,
-                          mode='lines', line_width=lw)
+                          mode='lines', line_width=lw, line=line)
         fig.update_layout(title=title, xaxis_title=xtitle, yaxis_title= ytitle, 
                           scene=dict(camera=dict(eye=dict(x=1.15, y=1.15, z=0.8)), #the default values are 1.25, 1.25, 1.25
                           xaxis=dict(),
@@ -43,7 +43,7 @@ def plot_curve3d(x, y, z, fig=None, xtitle='X', ytitle='Y', title='3D Plot', asp
     
     else:
         fig.add_scatter3d(x=x, y=y, z=z, showlegend=False, mode='lines', 
-                        line_width=lw)
+                        line_width=lw, line=line)
         fig.update_layout(title=title, xaxis_title=xtitle,
                         yaxis_title=ytitle, 
                         scene=dict(camera=dict(eye=dict(x=1.15, y=1.15, z=0.8)),  # the default values are 1.25, 1.25, 1.25
@@ -176,7 +176,7 @@ def plot_parametric_curve(func, inter1=None, fig=None, xtitle='X', ytitle='Y',
 
 # Plot a parametric curve in 3D
 def plot3d_parametric_curve(func, inter1=None, fig=None, xtitle='X', ytitle='Y', 
-                            title='3D Curve Plot', points=50,
+                            title='3D Curve Plot', points=50, line = None,
                             aspectmode='data'):
 
     '''
@@ -223,10 +223,11 @@ def plot3d_parametric_curve(func, inter1=None, fig=None, xtitle='X', ytitle='Y',
 
     if fig is None:
 
-        return plot_curve3d(x=xx, y=yy, z=zz, xtitle=xtitle, ytitle=ytitle, title=title,aspectmode=aspectmode)
+        return plot_curve3d(x=xx, y=yy, z=zz, xtitle=xtitle, ytitle=ytitle, title=title,aspectmode=aspectmode, line=line)
 
     else:
-        return plot_curve3d(x=xx, y=yy, z=zz, fig=fig, xtitle=xtitle, ytitle=ytitle, title=title, aspectmode=aspectmode)
+        return plot_curve3d(x=xx, y=yy, z=zz, fig=fig, xtitle=xtitle, ytitle=ytitle, title=title, aspectmode=aspectmode, line=line)
+
 
 
 # Position vector originating from origin!
