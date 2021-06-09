@@ -1630,7 +1630,7 @@ def gradient_descent(func, intervals, alpha=0.01, epochs=100, precision=None, ve
     # starting the gradient descent
     for epoch in range(epochs):
         if verbose == 1:
-            print(f"Starting epoch {epoch}, local_min is {local_min}, function is {f(*local_min)}")
+            print(f"Epoch {epoch+1}, local_min is {local_min}, the value of function is {f(*local_min)}")
 
         last_local_min = local_min.copy()
         local_min -= np.array([alpha * i for i in df_np(*local_min)])
