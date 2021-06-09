@@ -946,7 +946,7 @@ def plot_vector_field(func, inter1=None, inter2=None, fig = None, points=15, arr
         return fig
     
     else:
-        f = ff.create_quiver(xx, yy, u, v, arrow_scale=arrow_scale,name=name);
+        f = ff.create_quiver(xx, yy, u, v, arrow_scale=arrow_scale,name=name)
         fig.add_trace(*f.data)
         return fig   
 
@@ -1004,7 +1004,7 @@ def Unit_Vector(curve):
 def Arc_Length(curve, a): 
     #a: Um Tuple (variavel, inicio, fim)
 
-    return sp.integrate(Norm(curve.diff(t)),a)
+    return sp.integrate(Norm(curve.diff(a[0])),a)
 
 # Tangent Unitary vector
 def UT(curve, param=None): 
@@ -1569,3 +1569,91 @@ def riemann_sum(func,a,b,N,method='midpoint'):
         return np.sum(f_np(x_mid)*dx)
     else:
         raise ValueError("Method must be 'left', 'right' or 'midpoint'.")
+
+# This function is needed in the multivariate gradient descent
+def _gradient(func, vars):
+    """
+    - Arguments:
+        `func`: A function as a Sympy object.
+        `vars`: a tuple of independent variables of the function
+    - Return:
+        ``grad``: The gradient of the function as a list of its components
+    """
+    grad = []
+
+    for var in vars:
+        grad.append(func.diff(var))
+     
+    return grad
+
+# multivariate gradient descent
+def gradient_descent(func, intervals, alpha=0.01, epochs=100, precision=None, verbose=0, return_points=False):
+    '''
+    - Arguments:
+        `func`: function. a function of Sympy with 2 or 3 variables
+        `intervals`: tuple. a tuple of intervals each one in the format (varivel da função, inicio, fim)
+        `alpha`: float. the length of steps
+        `epochs`: integer. the number of iterations
+    - Return:
+        the value of the variable where the function has its minimum inside the interval.
+    '''
+    vars = [var[0] for var in intervals]
+    # to insure the order of the variables in the intervals
+    vars = list(sp.ordered(vars))
+    assert func.free_symbols == set(vars), 'The numer of declared variables must be the same as the function'
+
+    #fining the derivative of the func
+    df = _gradient(func, vars)
+    
+
+    grads = np.zeros((epochs,len(vars)+1))
+
+    #lambdify
+    f = sp.lambdify(vars, func, 'numpy')
+
+    df_np = sp.lambdify(vars, df, 'numpy')
+    
+    #finding an aproximation of the mininum by a random search
+    points = [np.linspace(var[1],var[2],100) for var in intervals]
+    mesh = np.array(np.meshgrid(*points))
+    #print(f"mesh shape is {mesh.shape}")
+    f_mesh = f(*mesh)
+    #print(f"f_mesh min is {f_mesh.min()}")
+
+    f_min_index = np.unravel_index(np.argmin(f_mesh, axis=None), f_mesh.shape)
+    #print(f"f_min_index is {f_min_index}")
+    local_min = np.array([element[f_min_index] for element in mesh])
+    
+
+    #print(f"inicial local_min is {local_min}")
+
+    # starting the gradient descent
+    for epoch in range(epochs):
+        if verbose == 1:
+            print(f"Starting epoch {epoch}, local_min is {local_min}, function is {f(*local_min)}")
+
+        last_local_min = local_min.copy()
+        local_min -= np.array([alpha * i for i in df_np(*local_min)])
+        grads[epoch,:] = *local_min, f(*local_min)
+        
+        if precision is not None:
+            if abs(f(*local_min) - f(*last_local_min)) < precision:
+                print('reached the precision')
+                if return_points:
+                    return local_min ,grads
+                else:
+                    return local_min 
+
+        if any([inter[1]>local_min[i] or inter[2]<local_min[i]
+               for inter in intervals for i in range(len(local_min))]):
+            local_min = last_local_min
+            print('out of interval')
+            if return_points:
+                return local_min ,grads
+            else:
+                return local_min 
+
+    if return_points:
+        return local_min ,grads
+    else:
+        return local_min 
